@@ -1,5 +1,6 @@
 openapi: 3.0.3
 apiVersion: 1.0.0
+kind: API
 info:
   title: Selligent Delivery Cloud API
   version: 1.0.0
