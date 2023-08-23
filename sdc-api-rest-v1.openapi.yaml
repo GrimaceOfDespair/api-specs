@@ -3,6 +3,10 @@ kind: API
 metadata:
   name: sdc-api
   description: The SDC API
+  links:
+    - url: https://developers.slgnt.eu/api/sdc
+      title: SDC Developer Portal
+      icon: dashboard
 spec:
   type: openapi
   lifecycle: production
