@@ -1,0 +1,3451 @@
+openapi: 3.0.3
+apiVersion: 1.0.0
+info:
+  title: Selligent Delivery Cloud API
+  version: 1.0.0
+  description: |+
+    # Selligent Delivery Cloud API
+
+    By providing a fully documented API reference, we want to enable everyone to maximize the usage of the Selligent
+    Platform for automating & exchange data.
+
+    The Selligent API is organized around the REST protocol with the use of HTTP verbs and a RESTful endpoint structure. The
+    API provides resource-oriented URLs, accepts form-encoded request bodies, returns JSON-encoded responses, and uses
+    standard HTTP response codes, authentication, and verbs. We strive to make the endpoints so self-explanatory and
+    informative as possible, by providing clear validation, error and success responses.
+
+    The API style is inspired by the [Microsoft API guidelines](https://github.com/Microsoft/api-guidelines/blob/master/Guidelines.md).
+
+    # REST API
+
+    The SDC API endpoints are segmented.
+
+    ## Base URL
+
+    ![](https://developers.slgnt.eu/api/sdc/assets/img/sdc-api-base-url.png)
+
+    ```
+    https://customername.module.slgnt.eu
+    ```
+
+    Example: `https://contoso.sdc.slgnt.eu/api/mobile/v1/push/send`
+
+    **Definition**
+
+    1. **Customer name**: refers to a unique subdomain per customer. In the example the customer is "contoso".
+    2. **Module**: refers to a unique subdomain per product/application module. For this API reference the module is SMC (
+       Selligent Marketing Cloud).
+    3. **slgnt.eu/slgnt.us**: refers to the geographical area for which the customer instance is active.
+
+       **Europe**: `https://customername.module.slgnt.eu` / **United States**: `https://customername.module.slgnt.us`
+
+    4. **Touchpoint**: refers to the grouped entrypoint for the user to interact/interface with the application. For this
+       API reference the touch point is the API.
+    5. **Component/Channel**: refers to the channels (email/mobile/sms) or towards a specific component (like messages,
+       reporting, …). In the example the channel is "push".
+
+    ## URI parts
+
+    ![](https://developers.slgnt.eu/api/sdc/assets/img/sdc-api-url-parts.png)
+
+    ```
+    https://baseUrl/chapter/versioning/entity(_type)/{identifier}/operation|result
+    ```
+
+    Examples:
+
+    ```bash
+    - Portal          https://contoso.sdc.slgnt.eu/api/portal/v1/policies/1234567890
+    - Mail            https://contoso.sdc.slgnt.eu/api/mail/v1/send
+    ```
+
+    **Definition**
+
+    0. _Part 0_: **Base URL** - The base url is a reference to the customer domain.
+    1. _Part 1_: **Channel** - Refers to the SDC channels: e-mail, mobile, sms, ...
+    2. _Part 2_: **Version number** - major numbering only - example: `v2`. In case no version number is part, it refers to
+       the initial API version.
+    3. _Part 3_: **Entity(_type)** - Refers to entity or entity type. This is depends on the chapter, if it is needed or
+       not.
+    4. _Part 4_: **Identifier** - Refers to the unique identifier for a specific entity.
+    5. _Part 5_: **Operation|Result** - Refers to additional operations or specific sub-entities of the parent entity. This
+       is depends on the chapter, if it is needed or not. Examples: lists > fields / journeys > send
+
+    ## Versioning
+
+    Currently, we are introducing a new version of the SDC REST API. The version number is part of the URI part of the API
+    endpoint.
+
+    When we make improvements to the current version of the API endpoints, we strive to make only backwards-incompatible
+    changes. We release improvements or new endpoints regularly. Read our API changelog to stay up-to-date with the latest
+    changes.
+
+    Example for V2 for push: `https://contoso.sdc.slgnt.eu/api/mobile/v2/push`
+
+    Example for V3 for push: `https://contoso.sdc.slgnt.eu/api/mobile/v3/push`
+
+    ## Authentication
+
+    The Selligent Delivery Cloud API uses the Oauth2.0 authorisation protocol, through bearer JSON Web Tokens (JWT), to authenticate requests. 
+    Selligent will provide you with a dedicated client ID and secret to authorize using OAuth.
+
+    With each API call, you will need to set request headers including your access key to authenticate yourself.
+
+    The client ID and secret carry significant privileges. Please ensure to keep them 100% secure.
+    Do not share your Oauth client ID and Oauth client secret in publicly accessible areas such as versioning systems (GitHub, Bitbucket,... ) or client-side code.
+
+    <!-- ReDoc-Inject: <security-definitions> -->
+
+    ## Errors
+    Selligent uses the conventional HTTP response codes to indicate successful or failed API requests.
+
+    Codes in the `2xx` range indicate success.
+
+    Codes in the `4xx` range indicate an input related error or validation restrictions.
+
+    Codes in the `5xx` range indicate an error with Selligent servers.
+
+    | HTTP Status Codes          | Description                                                                        |
+    | -------------------------- | ---------------------------------------------------------------------------------- |
+    | 200 - OK                   | We found the request resource                                                      |
+    | 201 - Created              | The resource is successfully created                                               |
+    | 204 - No Content           | The requested resources is empty                                                   |
+    | 400 - Bad Request          | There was an error with the request. The body of the response will have more info. |
+    | 401 - Unauthorized         | The access key was incorrect                                                       |
+    | 404 - Not found            | The resources cannot be found                                                      |
+    | 405 - Method Not Allowed   | The method is not allowed                                                          |
+    | 408 - Request Timeout      | The request is taking too long to respond                                          |
+    | 422 - Unprocessable Entity | The resource couldn't be created                                                   |
+    | 429 - Too Many Requests    | Too many requests hit the API too quickly                                          |
+    | 5xx - Server errors        | Something went wrong on our end. Please try again                                  |
+
+    ### 400/422 - Bad / Validation request
+
+    In the case of a validation of bad request error, the body of the response includes a JSON formatted response that tells
+    you exactly what's wrong.
+
+    #### Attributes
+
+    https://www.rfc-editor.org/rfc/rfc7807.txt
+
+
+    | Attribute <div style="width:130px">         | Type    | Description                                                                                                        |
+    | ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------ |
+    | `type`             | String  | A URI reference [RFC3986] that identifies the problem type.  This specification encourages that, when dereferenced, it provide human-readable documentation for the problem type (e.g., using HTML [W3C.REC-html5-20141028]). When this member is not present, its value is assumed to be "about:blank"              |
+    | `title`            | String  | A short, human-readable summary of the problem type.  It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization (e.g., using proactive content negotiation; see [RFC7231], Section 3.4) codes.                                                                          |
+    | `status`           | Integer | The HTTP status code ([RFC7231], Section 6) generated by the origin server for this occurrence of the problem type. |
+    | `detail`           | String  |A human-readable explanation specific to this occurrence of the problem. |
+    | `traceId`          | String  | A reference ID to trace log within the SMC platform. This can be relevant for reporting to the support team.       |
+    | `errors[]`         | Array   | An array of details about specific errors that led to this reported error.                                         |
+    | `errors[].field `  | String  | The problematic field in your request related to the error if the error is specific.                                          |
+    | `errors[].error`   | Integer | A short string indicating the error code reported, for some errors that could be handled programmatically.  In some cases, it can contain custom errors which are not documented error codes.      |
+    | `errors[].detail`  | String  | An optional human-readable description of the error. You can use this to let the user know what they can do about the error. |
+    | `errors[].index`   | Integer  | An optional value which gives additional information about the position of the entity in the given entity batch/array. Only available when dealing with batch. |
+
+    Entity failure :
+
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+      "title": "Validation errors",
+      "status": 400,  
+      "detail": "One or more validation errors occurred.",
+      "traceId": "00-03f4894fecc1ae4498599fb8d5d16b5e-9d0a2aab93c57d41-00",
+      "errors": [
+          {        
+            "field": "PhoneNumber",
+            "error": "REQUIRED_FIELD",
+            "message": "this field must not be null."
+          },
+          {
+            "field": "age",
+            "error": "INVALID_RANGE",
+            "message": "value should be between 0 and 99."
+          },
+          {
+            "field": "Address",
+            "error": "INVALID_ADDRESS",
+            "message": "Address is not valid."
+          },
+          {
+            "field": "customField1",
+            "error": "the format of field 'customField1' is invalid."
+          }
+        ]
+    }
+    ```
+
+    Bached entities :
+
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+      "title": "Validation errors",
+      "status": 400,  
+      "detail": "One or more validation errors occurred.",
+      "traceId": "00-03f4894fecc1ae4498599fb8d5d16b5e-9d0a2aab93c57d41-00",
+      "errors": [
+          {
+            "index": 0,
+            "field": "reference",
+            "error": "INVALID_REFERENCE_EMPTY",
+            "detail": "Reference is empty"
+          },
+          {
+            "index": 1,
+            "field": "context.tags",
+            "error": "INVALID_TAG_EMPTY",
+            "detail": "Tag can not be null or empty!"
+          },
+          {
+           "index": 2,
+           "field": "content.title",
+           "error": "INVALID_EMPTY_TITLE",
+           "detail": "Title cannot be empty"
+          }
+        ]
+    }
+    ```
+    #### Global error codes
+
+    | Code                    | Description                                                 |
+    | ----------------------- | ----------------------------------------------------------- | 
+    |REQUIRED_PROPERTY        | property is required.                                       | 
+    |INVALID_REFERENCE_EMPTY  | Message reference can not be empty.                         | 
+    |INVALID_REFERENCE_LENGTH | Message reference length threshold exceeded (64).           |
+    |INVALID_REFERENCE_CHAR   | Message reference can only contain letters,'-' and digits.  |
+    |INVALID_TYPE             | Request property type doesn't match expected type.          |
+    |INVALID_TAG_LENGTH       | Tag length can not be more than 96 bytes.                   |
+    |INVALID_TAG_EMPTY        | Tag can not be null or empty.                               |
+    |INVALID_TAG_CHAR         | Tag contains an invalid character: '/'.                     |
+    |INVALID_METADATA_LENGTH  | Metadata can not contain more than 140 characters           |
+    |INVALID_PROFILE_LENGTH   | Profile can not contain more than 140 characters            |
+
+    #### e-mail error codes
+
+    | Code                    | Description                                                 |
+    | ----------------------- | ----------------------------------------------------------- | 
+    |INVALID_SUBJECT_EMPTY    | e-mail 'Subject' can not be empty. | 
+    |REQUIRED_TO_HEADER       | To: header is required. | 
+    |REQUIRED_TO_ADDRESS      | To: Address is required. | 
+    |REQUIRED_FROM_HEADER     | From: header is required. | 
+    |REQUIRED_FROM_ADDRESS    | From: Address is required. | 
+    |REFERENCE_DUPLICATE_DETECTED | Duplicate references have been detected in the batch |
+    |Duplicate headers detected: [{0}]. | Duplicate headers detected: [{0}]. '{0}' contains the list of duplicated headers |
+    |Error for optional header: name can not be null or empty. | Error for optional header: name can not be null or empty. |
+    |Error for optional header: name can not be null or empty. | Error for optional header: name can not be null or empty. |
+    |Error for optional header [{header.Name}]: value can not be null or empty | Error for optional header [{header.Name}]: value can not be null or empty|
+    |Error for header [{header.Name}]: name of custom headers should start with 'X-'.|Error for header [{header.Name}]: name of custom headers should start with 'X-'.|
+    |Error for header {header.Name}: A field name MUST be composed of printable US - ASCII characters (i.e., characters that have values between 33 and 126, inclusive), except colon|Error for header {header.Name}: A field name MUST be composed of printable US - ASCII characters (i.e., characters that have values between 33 and 126, inclusive), except colon|
+    |Error for header {header.Value}:A field value MUST be composed of US - ASCII characters|Error for header {header.Value}:A field value MUST be composed of US - ASCII characters|
+    |The api call does not support recipient overrides. Change the addressee instead.|The api call does not support recipient overrides. Change the addressee instead.|
+
+    #### Mobile error codes
+
+    | Code                          | Description                                                                 |
+    | ----------------------------- | --------------------------------------------------------------------------- | 
+    |INVALID_EMPTY_TOKEN            | Device token is required for bulk send.                                     | 
+    |INVALID_EMPTY_TITLE            | Push notification title is mandatory when sending none silent notification. |
+    |INVALID_EMPTY_BODY             | Push notification body is mandatory when sending none silent notification.  |
+    |MISSING_APP_CONFIG             | No configuration available for this Mobile App.";                           |
+    |MISSING_PROVIDER_CONFIG_APPLE  | Not credentials are defined for 'apple'.                                    |
+    |MISSING_PROVIDER_CONFIG_GOOGLE | Not credentials are defined for 'google'.                                   |
+    |MISSING_PROVIDER_CONFIG_HUAWEI | Not credentials are defined for 'huawei'.                                   |
+    |UNKNOWN_PROVIDER               | Unknown provider '{0}'.                                                     |
+    |BRCST_OPERATION_NOT_FOUND      | Broadcast operation not found.                                              |
+    |INAPP_CONTENT_NOT_ALLOWED      | InApp content is not allowed for simple push type. Use 'PushWithInApp' type of 'Silent'. |
+    |INVALID_INAPP_EMPTY_TITLE      | InApp content title is mandatory.                                           |
+    |INVALID_INAPP_EMPTY_BODY       | InApp content body is mandatory.                                            |
+    |INVALID_TEMPLATE_REFERENCE     | Invalid template reference specified.                                       |
+
+    <!--## 5xx - Server errors-->
+
+    # OpenAPI specification
+
+    We provide the API specification in the format of OpenApi files which can be found in the openapi/ directory:
+
+    - OpenAPI 3.0 - JSON format ::  <a href="https://developers.slgnt.eu/api/sdc/openapi/sdc-api-rest-v1.openapi.json" target="_blank">sdc-api-rest-v1.openapi.json</a>
+    - OpenAPI 3.0 - YAML format :: <a href="https://developers.slgnt.eu/api/sdc/openapi/sdc-api-rest-v1.openapi.yaml" target="_blank">sdc-api-rest-v1.openapi.yaml</a>
+
+    The older Swagger/OpenAPI 2.0 is also available, but will be deprecated over time, since we are in favor of newer OpenAPI specification 3.0.
+
+    - Swagger/OpenAPI 2.0 - JSON format :: <a href="https://developers.slgnt.eu/api/sdc/openapi/sdc-api-rest-v1.swagger.json" target="_blank">sdc-api-rest-v1.swagger.json</a>
+
+    # Postman collection
+
+    To get you up and running and provide a hands-on experience, we provide an up-to-date Postman collection of the SDC API V1.
+
+
+
+    Import the Postman collection through any of the methods specified below.
+
+
+    - Use the link: <a href="https://developers.slgnt.eu/api/sdc/postman/sdc-api-rest-v1.postman.json" target="_blank">https://developers.slgnt.eu/api/sdc/postman/sdc-api-rest-v1.postman.json</a> via "Import" > "Link"
+    - Download the file <a href="https://developers.slgnt.eu/api/sdc/postman/sdc-api-rest-v1.postman.json" target="_blank">sdc-api-rest-v1.postman.json</a> and import the file via "Import" > "File"
+    - Download the file <a href="https://developers.slgnt.eu/api/sdc/postman/sdc-api-rest-v1.postman.json" target="_blank">sdc-api-rest-v1.postman.json</a> and copy the contents and paste in the "Import" > Paste "Raw Text" section.
+
+    This collection takes advantage of Postman variables and environments to store/access your Selligent Oauth Client key/secret and base
+    URL.
+
+
+
+
+
+
+
+
+  contact:
+    name: Team Selligent
+    url: https://developers.slgnt.eu/
+    email: info@selligent.com
+  x-logo:
+    url: https://developers.slgnt.eu/assets/logo/smc-brand-white-rect.png
+    backgroundColor: '#098D91'
+servers:
+  - url: https://customername.sdc.slgnt.eu/api
+    description: SDC API endpoint (EU region)
+  - url: https://customername.sdc.slgnt.us/api
+    description: SDC API endpoint (US region)
+paths:
+  /email/v1/messages/send:
+    post:
+      operationId: post-email-send
+      summary: Send e-mail messages
+      description: |-
+        Send a single e-mail message or messages in bulk to a range of recipients.
+
+        Limitations:
+        - Maximum 100 messages per request are accepted.
+        - Maximum JSON body size is 4 MB (message including encoded attachments).
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: The payload for sending an e-mail messages in bulk.
+              type: array
+              items:
+                $ref: '#/components/schemas/SendMailBulkModel'
+            examples:
+              sample-send-email-full:
+                $ref: '#/components/examples/sample-send-email-full'
+              sample-send-email-without-attachments:
+                $ref: '#/components/examples/sample-send-email-without-attachments'
+              sample-send-email-without-optional-data:
+                $ref: '#/components/examples/sample-send-email-without-optional-data'
+              sample-send-email-with-optional-rfc-headers:
+                $ref: '#/components/examples/sample-send-email-with-optional-rfc-headers'
+      responses:
+        '202':
+          description: Accepted
+        '422':
+          description: Unprocessable entity
+      tags:
+        - Message sending
+  /email/v1/slots/{slotId}/restart:
+    post:
+      operationId: put-slot-restart
+      summary: Restart a slot
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/slotId'
+      responses:
+        '202':
+          description: Slot restart was accepted.
+        '404':
+          description: Slot was not found.
+      tags:
+        - Slots
+  /email/v1/slots/{slotId}/cancel:
+    post:
+      operationId: put-slot-cancel
+      summary: Cancel a slot
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/slotId'
+      responses:
+        '202':
+          description: Slot cancel was accepted.
+        '404':
+          description: Slot was not found.
+      tags:
+        - Slots
+  /reporting/v1/bounces:
+    get:
+      operationId: get-tenant-bounces
+      summary: Get Bounces
+      description: Get Bounces
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/rangeDateStart'
+        - $ref: '#/components/parameters/rangeDateEnd'
+        - $ref: '#/components/parameters/odataTop'
+        - $ref: '#/components/parameters/odataSkip'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/BounceApiMode'
+        - name: accountId
+          in: query
+          schema:
+            type: string
+            default: null
+          nullable: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BounceQueryResponse'
+              examples:
+                sample-sdc-bounces-email-bounces:
+                  $ref: '#/components/examples/sample-sdc-bounces-email-bounces'
+      tags:
+        - Bounces
+  /reporting/v1/listunsubscribes:
+    get:
+      operationId: get-tenant-unsubscribes
+      summary: Get List Unsubscribes
+      description: Get List Unsubscribes
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/rangeDateStart'
+        - $ref: '#/components/parameters/rangeDateEnd'
+        - $ref: '#/components/parameters/odataTop'
+        - $ref: '#/components/parameters/odataSkip'
+        - name: accountId
+          in: query
+          schema:
+            type: string
+            default: null
+          nullable: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BounceUnsubscribeQueryResponse'
+              examples:
+                sample-sdc-bounces-email-bounces:
+                  $ref: '#/components/examples/sample-sdc-bounces-email-listunsubscribes'
+      tags:
+        - Bounces
+  /reporting/v1/complaints:
+    get:
+      operationId: get-tenant-complaints
+      summary: Get Complaints
+      description: Get Complaints
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/rangeDateStart'
+        - $ref: '#/components/parameters/rangeDateEnd'
+        - $ref: '#/components/parameters/odataTop'
+        - $ref: '#/components/parameters/odataSkip'
+        - name: accountId
+          in: query
+          schema:
+            type: string
+            default: null
+          nullable: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BounceComplaintsQueryResponse'
+              examples:
+                sample-sdc-bounces-email-bounces:
+                  $ref: '#/components/examples/sample-sdc-bounces-email-complaints'
+      tags:
+        - Bounces
+  /reporting/v1/bounces/{messageId}:
+    get:
+      operationId: get-tenant-bounces-by-ref
+      summary: Find a bounce by external reference id
+      description: Find a bounce by external reference id
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/messageId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bounce'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      tags:
+        - Bounces
+  /reporting/v1/statistics:
+    parameters:
+      - $ref: '#/components/parameters/OAuth2'
+      - $ref: '#/components/parameters/ApplicationJson'
+      - $ref: '#/components/parameters/rangeStart'
+      - $ref: '#/components/parameters/rangeEnd'
+    get:
+      operationId: get-statistics-global
+      summary: Get the deliverabiliy statistics
+      description: Retrieves the deliverability statistics in the specified timerange
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponses'
+      tags:
+        - Statistics
+  /reporting/v1/tracking/{messageId}:
+    get:
+      operationId: get-message-tracking-events
+      summary: Track a message
+      description: Get all message proccing & delivery events for a specific message reference.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/messageId'
+      responses:
+        '200':
+          description: Items are found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageEventTrackingResults'
+      tags:
+        - Message tracking
+  /reporting/v1/profile/{profileId}/archive:
+    get:
+      operationId: get-archived-messages
+      summary: Get messages for a profile
+      description: |-
+        Browse through the list of archived messages for a profile.
+
+        Currently limited to the last 100 messages. Paging & date range filtering are available.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/profileId'
+        - $ref: '#/components/parameters/rangeDateStart'
+        - $ref: '#/components/parameters/rangeDateEnd'
+        - $ref: '#/components/parameters/odataTop'
+        - $ref: '#/components/parameters/odataSkip'
+        - $ref: '#/components/parameters/odataCount'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageArchiveResults'
+              examples:
+                sample-reporting-messages-archive:
+                  $ref: '#/components/examples/sample-reporting-messages-archive'
+      tags:
+        - Message archive
+    delete:
+      operationId: delete-archived-messages
+      summary: Delete messages for a profile
+      description: Delete all archived messages for a profile. The messages are deleted in an asynchronous way.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/profileId'
+      responses:
+        '202':
+          description: Success
+      tags:
+        - Message archive
+  /reporting/v1/profile/{profileId}/archive/{messageId}:
+    get:
+      operationId: get-archived-message
+      summary: Get a message
+      description: Get all the metadata for a single message.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/profileId'
+        - $ref: '#/components/parameters/messageId'
+        - $ref: '#/components/parameters/archiveTracking'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/MessageArchiveResultData'
+                  - type: object
+                    properties:
+                      tracking:
+                        description: List of tracking events for a message.
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MessageEventTrackingResultData'
+      tags:
+        - Message archive
+  /reporting/v1/profile/{profileId}/archive/{messageId}/download:
+    get:
+      operationId: get-archived-message-download
+      summary: Download a message
+      description: Get an archived message in channel specific format (.eml, .push, .sms).
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/ApplicationJson'
+        - $ref: '#/components/parameters/profileId'
+        - $ref: '#/components/parameters/messageId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - Message archive
+  /reporting/v1/profile/{profileId}/archive/{messageId}/download/{fileName}:
+    get:
+      operationId: get-archived-message-download-attachment
+      summary: Download an attachment
+      description: Get the attachment of an archived message.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/profileId'
+        - $ref: '#/components/parameters/messageId'
+        - $ref: '#/components/parameters/fileName'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - Message archive
+  /reporting/v1/profile/{profileId}/archive/{messageId}/preview:
+    get:
+      operationId: get-archived-message-preview
+      summary: Preview a message
+      description: Preview a single archived message as HTML or as PDF file.
+      parameters:
+        - $ref: '#/components/parameters/OAuth2'
+        - $ref: '#/components/parameters/profileId'
+        - $ref: '#/components/parameters/messageId'
+        - name: Accept
+          in: header
+          required: true
+          schema:
+            description: 'Determines the format in which you want to preview. Allowed types: `*/*`, `text/html` or `application/pdf`'
+            type: string
+            example: application/pdf
+            default: '*/*'
+      responses:
+        '200':
+          description: The message is found and can be previewed
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/html:
+              schema:
+                type: string
+              examples:
+                html:
+                  value: <html>...</html>
+        '404':
+          description: The message is not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '406':
+          description: Invalid media type was specified in the `Accept` header (should be `application/json`, `*/*` or `text/html`)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://tools.ietf.org/html/rfc7231#section-6.5.6
+                title: Not Acceptable
+                status: 406
+                detail: Accept type `application/json`  is not supported. Supported types are `*/*`, `text/html`, `application/pdf`.
+                traceId: 00-e591ed8aa555d78bbfc7c6fdbf46851e-f34656b7f3978a6c-00
+      tags:
+        - Message archive
+  /oauth/token:
+    servers:
+      - url: https://auth.slgnt.eu
+    post:
+      operationId: post-oauth-request-token
+      summary: Get Oauth access Token
+      description: |-
+        Request an access tokens to access SDC resources on behalf of an authenticated user.
+
+        Note:
+        * Access Tokens expire after 2 hours.
+        * Refresh Tokens don't expire until they are used.
+      parameters:
+        - $ref: '#/components/parameters/ApplicationJson'
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OauthTokenRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthTokenResponse'
+        '401':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthErrorResponse'
+      tags:
+        - OAuth
+x-webhooks:
+  sdc-deliveries-email-sent:
+    post:
+      operationId: sdc-deliveries-email-sent
+      summary: Delivery sent events for SDC e-mail messages
+      description: Event that are triggered every time an e-mail message is sent.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudEventSdcEmailDeliveriesSent'
+            examples:
+              sdc-deliveries-email-sent:
+                $ref: '#/components/examples/sample-sdc-deliveries-email-sent'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      tags:
+        - Webhook Events
+  sdc-deliveries-email-failed:
+    post:
+      operationId: sdc-deliveries-email-failed
+      summary: Delivery failed events for SDC e-mail messages
+      description: Event that are triggered every time an e-mail message is failed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudEventSdcEmailDeliveriesFailed'
+            examples:
+              sdc-deliveries-email-failed:
+                $ref: '#/components/examples/sample-sdc-deliveries-email-failed'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      tags:
+        - Webhook Events
+  sdc-bounces-email:
+    post:
+      operationId: sdc-bounces-email
+      summary: Bounce events for SDC e-mail messages
+      description: These Events are triggered every time a bounce message is received in the reply to inbox configured on the SDC side.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudEventSdcEmailBounces'
+            examples:
+              sdc.bounces.email.bounced:
+                $ref: '#/components/examples/sample-sdc-bounces-email-bounced'
+              sdc.bounces.email.complaintfiled:
+                $ref: '#/components/examples/sample-sdc-bounces-email-complaintfiled'
+              sdc.bounces.email.listunsubscribed:
+                $ref: '#/components/examples/sample-sdc-bounces-email-listunsubscribed'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+      tags:
+        - Webhook Events
+components:
+  parameters:
+    ApplicationJson:
+      in: header
+      name: Content-Type
+      required: true
+      schema:
+        type: string
+        example: application/json
+        default: application/json
+      description: Define the file type and format for the request object.
+    ApplicationTextHtml:
+      in: header
+      name: Content-Type
+      required: true
+      schema:
+        type: string
+        example: text/html
+        default: text/html
+      description: Define the file type and format for the response object.
+    OAuth2:
+      in: header
+      name: Authorization
+      required: false
+      schema:
+        type: string
+        example: Bearer {{oauth_access_token}}
+        default: Bearer {{oauth_access_token}}
+      description: Oauth2 token to authorize requests.
+    archiveTracking:
+      name: $tracking
+      in: query
+      description: Request the tracking events for the matching message, to be included with the returned results
+      schema:
+        type: boolean
+        default: false
+    deviceId:
+      in: path
+      name: deviceId
+      required: true
+      schema:
+        type: string
+        example: ba32ba7b-0095-4f8c-8773-10bf85f9bf02
+      description: The unique identifier of the device.
+    fileName:
+      in: path
+      name: fileName
+      required: true
+      schema:
+        type: string
+        example: message_attachement.pdf
+      description: The unique filename for a message attachment.
+    messageId:
+      in: path
+      name: messageId
+      required: true
+      schema:
+        type: string
+        example: message-12345-abcde-6789
+      description: The unique identifier of the message.
+    mobileEventDefinitionId:
+      in: path
+      name: mobileEventDefinitionId
+      required: true
+      schema:
+        type: string
+        example: ba32ba7b-0095-4f8c-8773-10bf85f9bf02
+      description: The unique identifier of a mobile event definition.
+    odataCount:
+      name: $count
+      in: query
+      description: Request a count of matching items included with the results.
+      schema:
+        type: boolean
+        default: false
+    odataOrderByOperations:
+      name: $orderby
+      in: query
+      description: A comma-separated list of properties with "asc" (the default) or "desc" to control the order of returned items
+      schema:
+        type: string
+        example: lastAction asc
+        default: ID asc
+    odataSkip:
+      name: $skip
+      in: query
+      description: The number of items to skip over before returning items
+      schema:
+        type: integer
+        format: int32
+        default: 0
+    odataTop:
+      name: $top
+      in: query
+      description: The number of records to return, used for pagination.
+      schema:
+        type: integer
+        format: int32
+        default: 100
+    operationId:
+      name: operationId
+      description: ID of the operation.
+      in: path
+      required: true
+      schema:
+        type: string
+        example: c29a46ba-0b98-4618-ace6-4f5a44d3fafb
+    profileId:
+      name: profileId
+      description: 'The unique identifier of a profile. For SMC customers, this would be a combination of the reference of properties : `LISTID.USERID`'
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 12345-ABCDEFG-6789
+        nullable: true
+    rangeDateEnd:
+      name: end
+      description: End of date range, expressed as ISO-8601 format. If not set, all the items up untill now will be returned.
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2022-12-31'
+    rangeDateStart:
+      name: start
+      description: Beginning of date range, expressed as ISO-8601 format. If not set, all the data since the 1st record will be returned.
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2023-01-01'
+    rangeEnd:
+      name: end
+      description: End of time range, expressed as ISO-8601 timestamp in UTC.
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2022-12-31T13:00:56Z'
+    rangeStart:
+      name: start
+      description: Beginning of time range, expressed as ISO-8601 timestamp in UTC.
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2022-01-01T13:00:56Z'
+    slotId:
+      name: id
+      description: The unique identifier of the slot.
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 4fc4c5271a24485094c3161c29adcb7f
+    templateId:
+      in: path
+      name: templateId
+      required: true
+      schema:
+        type: string
+        example: demo-push-template-id
+      description: The unique identifier of a push template.
+    templateVersion:
+      in: path
+      name: templateVersion
+      required: true
+      schema:
+        type: string
+        example: '1.0'
+      description: The version of a push template.
+  schemas:
+    MessageReference:
+      description: A reference for keeping track of the message. This reference can be chosen freely and should be unique. Note that uniqueness is not enforced.
+      type: string
+      example: 2a0a0b3e71874163860d496b0283a790
+      minLength: 1
+    MailContent:
+      description: The content of the e-mail message.
+      type: object
+      properties:
+        html:
+          description: The HTML content of the e-mail message
+          type: string
+          example: <html>This is the HTML content of the message</html>
+        text:
+          description: The Text content of the e-mail message
+          type: string
+          example: This is the Text content of the message
+        attachments:
+          description: |
+            The list of filed attachments, that will be attached at the e-mail.
+            Each attachment filename should be unique and the data should be valid base64 encoded.
+          type: array
+          items:
+            properties:
+              file_name:
+                description: The file name of the attached file
+                type: string
+                example: placeholder.png
+                uniqueItems: true
+              data:
+                description: The base64 encoded data of the attached file
+                type: string
+                example: iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=
+              mime_type:
+                description: The mime type of the attached file
+                type: string
+                example: image/png
+      required:
+        - html
+        - text
+    MailRecipient:
+      description: The recipient of the e-mail message.
+      type: object
+      properties:
+        alias:
+          description: The full qualified alias
+          type: string
+          example: Jane Doe
+        address:
+          description: The e-mail addres
+          type: string
+          example: jane.doe@example.com
+    MailFrom:
+      description: The sender information for the e-mail message
+      type: object
+      properties:
+        alias:
+          description: The full qualified alias
+          type: string
+          example: Jane Doe
+        address:
+          description: The e-mail addres
+          type: string
+          example: jane.doe@example.com
+    MailReply:
+      description: The reply information for the e-mail message
+      type: object
+      properties:
+        alias:
+          description: The full qualified alias
+          type: string
+          example: Jane Doe
+        address:
+          description: The e-mail addres
+          type: string
+          example: jane.doe@example.com
+    MailHeaders:
+      description: The mail headers of the e-mail message.
+      type: object
+      properties:
+        subject:
+          description: The subject of the e-mail message
+          type: string
+          example: Hello world from SDC
+        to:
+          $ref: '#/components/schemas/MailRecipient'
+        from:
+          $ref: '#/components/schemas/MailFrom'
+        reply:
+          $ref: '#/components/schemas/MailReply'
+        list_unsubscribe:
+          description: The unsubscribe link for mailing list
+          type: string
+          example: <https://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+        optional:
+          description: Optional mail headers that will be attached to the e-mail, expressed as name/value pair.
+          type: array
+          items:
+            properties:
+              name:
+                description: The header name. The header should start with "X-" or must be an RFC conform header of the list ["Precedence","Auto-Submitted", "List-Id", "List-Help"].
+                type: string
+                example: X-GRID-REF
+              value:
+                description: The header value for the header name
+                type: string
+                example: msg-123456789
+      required:
+        - subject
+        - to
+        - from
+    MessageContext:
+      description: Use the context to pass relevant information along with each message.
+      type: object
+      properties:
+        tags:
+          description: A list of tags for the send message. Tags are useful for group reporting & filtering.
+          type: array
+          items:
+            type: string
+          example:
+            - zuppy-bounce
+            - resto-order-now-campaign-feb
+        metadata:
+          description: A custom field that can be used for passing on external metadata through SDC. The metadata will be included in the feedback data, but not available for reporting or filtering within SDC. This can be a string or stringified JSON object.
+          type: string
+          example: '{"name":"jane.doe","ref":123456789}'
+        profile:
+          description: A field that allows adding a unique reference for the receiver of the message. This profile reference can be used in all channels and usefull for search & filter capabilities in SDC reporting & for looking up messages in the archive.<br/> **NOTE:** if no profile reference is provided, the message will **not** be archived.
+          type: string
+          example: crm-id-123456789
+    customSendtime:
+      description: Can be used to specify a date time for sending message, instead of sending it instantly. The date time can be entered in UTC format. Sending cannot be scheduled more than 24 hours in advance.
+      type: string
+      example: '2022-09-02T12:00:00+00:00'
+      nullable: true
+    timeToLive:
+      description: |
+        The expiration time after which the message is deleted, regardless of state. This value is expressed as an ISO 8601 duration. The maximum time-to-life that can be defined is 2 days or 48 hours.
+
+        Examples: `P2D` = 2 days, `PT30M` = 30 minutes, `PT10S` = 10 seconds
+      type: string
+      example: P2D
+      default: P2D
+      nullable: true
+    ArchiveEnabled:
+      description: '**Only available with Message Archiving**<br/> Overwrites the default tenant setting for archiving messages.<br/> If `true`, the message will be archived.<br/> If `false`, the message will not be archived.<br/> If null or not provided, the default setting for the tenant will be used.'
+      type: boolean
+      example: true
+      nullable: true
+    ArchiveDuration:
+      description: '**Only available with Message Archiving** <br/> Overwrites the default tenant setting for how long messages will be archived.<br/> The value should be expressed in the ISO 8601 duration format and must at minimum be 1 day.<br/> If set, the message will be archived for the specified duration, unless that duration is bigger than the default setting specified on the tentant.<br/> If null or not provided, the default setting for the tenant will be used.<br/> Examples: `P2D` = 2 days, `P5M` = 5 months, `P2Y` = 2 years'
+      type: string
+      example: P31D
+      nullable: true
+    SendMailBulkModel:
+      description: The single payload for sending a e-mail message.
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/MessageReference'
+        content:
+          $ref: '#/components/schemas/MailContent'
+        headers:
+          $ref: '#/components/schemas/MailHeaders'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        custom_send_time:
+          $ref: '#/components/schemas/customSendtime'
+        time_to_live:
+          $ref: '#/components/schemas/timeToLive'
+        archive_enabled:
+          $ref: '#/components/schemas/ArchiveEnabled'
+        archive_duration:
+          $ref: '#/components/schemas/ArchiveDuration'
+      required:
+        - reference
+        - content
+        - headers
+    InAppMessageType:
+      description: All supported Inapp content Type
+      type: string
+      example: alert
+      enum:
+        - alert
+        - url
+        - image
+    ButtonAction:
+      description: The action to execute behind this button.
+      type: string
+      example: url
+      enum:
+        - simple
+        - phone
+        - sms
+        - mail
+        - url
+        - externalApp
+        - rateApp
+        - broadcastEvent
+        - passbook
+        - deeplink
+    PushButton:
+      type: object
+      properties:
+        id:
+          description: Id of your button
+          type: string
+          example: yourButtonId
+        label:
+          description: Label of your button
+          type: string
+          example: Hey it's a beautiful button
+        value:
+          description: Value of the button
+          type: string
+          example: https://yourwebsite.com
+        action:
+          $ref: '#/components/schemas/ButtonAction'
+    InAppNotification:
+      description: Content of an in app notification
+      type: object
+      properties:
+        title:
+          description: InApp Push title
+          type: string
+          example: Hello world
+          minLength: 1
+        body:
+          description: InApp Push body
+          type: string
+          example: Welcome to SDC, happy to have you.
+          minLength: 1
+        type:
+          $ref: '#/components/schemas/InAppMessageType'
+        buttons:
+          description: Buttons to be displayed in the in app content
+          type: array
+          items:
+            $ref: '#/components/schemas/PushButton'
+    BannerAction:
+      description: The action to execute when the push is of type Simple, after clicking in the banner.
+      type: object
+      properties:
+        value:
+          description: The value of the action to execute (i.e website url, deeplink...).
+          type: string
+          example: myschema://mydeeplink
+        action:
+          $ref: '#/components/schemas/ButtonAction'
+    RichContentType:
+      description: The type of rich content
+      type: string
+      example: image
+      enum:
+        - image
+    BannerRichContent:
+      description: Optional data to enrich the notification.
+      type: object
+      properties:
+        url:
+          description: Rich Content Url
+          type: string
+          example: https://mydomain.com/staticfiles/myimage.jpg
+        content_type:
+          $ref: '#/components/schemas/RichContentType'
+    PushType:
+      description: All supported Push Type
+      type: string
+      example: withInAppMsg
+      enum:
+        - simple
+        - withInAppMsg
+        - silent
+    PushAppleSettings:
+      description: Apple-specific push content settings.
+      type: object
+      properties:
+        interruption_level:
+          description: |
+            The interruption level that indicates the priority and delivery timing of a notification
+            active: The system presents the notification immediately, lights up the screen, and can play a sound.
+            passive: The system adds the notification to the notification list without lighting up the screen or playing a sound.
+            critical: The system presents the notification immediately, lights up the screen, and bypasses the mute switch to play a sound.
+            time-sensitive: The system presents the notification immediately, lights up the screen, and can play a sound, but won't break through system notification controls.
+          type: string
+          example: active
+          enum:
+            - active
+            - passive
+            - critical
+            - timeSensitive
+        relevance_score:
+          description: The system uses the relevanceScore, a value between 0 and 1, to sort the notifications from your app. The highest score gets featured in the notification summary.
+          type: number
+          example: '0.8'
+    MessagePushContent:
+      description: Content of the push message.
+      type: object
+      properties:
+        title:
+          description: Title of the push message.
+          type: string
+          example: Hello world from SDC
+          minLength: 1
+        body:
+          description: Content of the push message.
+          type: string
+          example: Hope you like this push notification provided by SDC.
+          minLength: 1
+        iam:
+          $ref: '#/components/schemas/InAppNotification'
+        main_action:
+          $ref: '#/components/schemas/BannerAction'
+        rich_content:
+          $ref: '#/components/schemas/BannerRichContent'
+        buttons:
+          description: Buttons to be displayed in the push.
+          type: array
+          items:
+            $ref: '#/components/schemas/PushButton'
+        type:
+          $ref: '#/components/schemas/PushType'
+        expiration:
+          description: This value identifies the time when the notification is no longer valid and can be discarded (UTC). The maximum expiration time that can be defined is Now (UTC) + 2 months.
+          type: string
+          example: '2022-01-13T09:00:16.976Z'
+        badge:
+          description: Badge type of the push message.
+          type: integer
+          example: 1
+        sound:
+          description: Nam of the sound file to play when the push is delivered.
+          type: string
+          example: mysound.aiff
+        apple:
+          $ref: '#/components/schemas/PushAppleSettings'
+    SavePushTemplateRequest:
+      description: The content of the push template.
+      type: object
+      properties:
+        name:
+          description: Name of the push template
+          type: string
+          example: Demo Template - 1
+          minLength: 1
+        content:
+          $ref: '#/components/schemas/MessagePushContent'
+    TemplateId:
+      description: The unique identifier of a push template. If specified, content properties will be ignored.
+      type: string
+      example: 4ea4cce8607d422f83aab38a69e70f04
+    TemplateVersion:
+      description: Selected push template version.
+      type: string
+      example: '1.0'
+    PushTemplateDefinition:
+      description: The push template definition.
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/TemplateId'
+        name:
+          description: Name of the push template
+          type: string
+          example: Demo Template - 1
+          minLength: 1
+        content:
+          $ref: '#/components/schemas/MessagePushContent'
+        version:
+          $ref: '#/components/schemas/TemplateVersion'
+        versions:
+          description: Template versions available
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateVersion'
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          description: A URI reference [RFC3986] that identifies the problem type.  This specification encourages that, when dereferenced, it provide human-readable documentation for the problem type (e.g., using HTML [W3C.REC-html5-20141028]).  When this member is not present, its value is assumed to be "about:blank".
+          type: string
+          example: https://tools.ietf.org/html/rfc7231#section-6.5.4
+          nullable: true
+        title:
+          description: A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization(e.g., using proactive content negotiation; see[RFC7231], Section 3.4).
+          type: string
+          example: Not Found
+          nullable: true
+        status:
+          description: The HTTP status code([RFC7231], Section 6) generated by the origin server for this occurrence of the problem.
+          type: integer
+          format: int32
+          example: 404
+          nullable: true
+        detail:
+          description: A human-readable explanation specific to this occurrence of the problem.
+          type: string
+          example: Resource does not exist.
+          nullable: true
+        instance:
+          description: A URI reference that identifies the specific occurrence of the problem.It may or may not yield further information if dereferenced.
+          type: string
+          example: TODO BEN
+          nullable: true
+    PushBroadcastAudience:
+      description: The recipient of the push message.
+      type: object
+      properties:
+        audience:
+          description: Broadcast audience filter. Use '*' to target all devices which opted-in push notifications.
+          type: string
+          example: '*'
+    SendPushBroadcastModel:
+      description: The single payload to trigger a push broadact execution.
+      type: object
+      properties:
+        to:
+          $ref: '#/components/schemas/PushBroadcastAudience'
+        template_id:
+          $ref: '#/components/schemas/TemplateId'
+        content:
+          $ref: '#/components/schemas/MessagePushContent'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        archive_enabled:
+          $ref: '#/components/schemas/ArchiveEnabled'
+        archive_duration:
+          $ref: '#/components/schemas/ArchiveDuration'
+      required:
+        - to
+    OperationState:
+      description: The code of the operation execution state
+      type: string
+      example: success
+      enum:
+        - pending
+        - processing
+        - success
+        - failed
+    OperationType:
+      description: |
+        The code of the operation type
+      type: string
+      example: push_broadcast
+      enum:
+        - push_broadcast
+    SendPushBroadcastResponse:
+      description: broadcast trigger response.
+      type: object
+      properties:
+        id:
+          description: Broadcast operation identifier. Can be use to retrieve feedback later on via operation endpoint
+          type: string
+          example: 20ed5086-2de6-4ab7-9d81-7d764aa8b3ce
+          minLength: 1
+        state:
+          $ref: '#/components/schemas/OperationState'
+        type:
+          $ref: '#/components/schemas/OperationType'
+    OperationStatusType:
+      description: |
+        The status type ID of operations for any task:
+         * `Pending` - Pending
+         * `Running` - Running
+         * `Succeeded` - Succeeded. Terminal State
+         * `Failed` - Failed. Terminal State
+      type: string
+      enum:
+        - NotStarted
+        - Running
+        - Succeeded
+        - Failed
+    OperationsResultData:
+      description: Operations result data.
+      type: object
+      properties:
+        id:
+          description: The unique ID for the operation.
+          type: string
+          example: 12345-6789-3333-1111-2222
+        status:
+          $ref: '#/components/schemas/OperationStatusType'
+        created:
+          description: Creation date time of the operation.
+          type: string
+          format: date-time
+          example: '2020-05-25T13:10:23.286Z'
+        started:
+          description: Indicates when the operation started.
+          type: string
+          format: date-time
+          example: '2020-05-25T13:10:23.286Z'
+        lastUpdate:
+          description: Last modified date time of the operation.
+          type: string
+          format: date-time
+          example: '2020-05-25T13:10:23.286Z'
+        type:
+          description: The type name of the operation.
+          type: string
+        properties:
+          description: Additional properties of the operation result.
+          type: object
+          nullable: true
+          properties:
+            reportLocation:
+              description: Example of operation property.
+              type: string
+              example: https://customername.sdc.slgnt.eu/api/message/send/1234567890/reports/ABC-123-DEF-456
+      required:
+        - id
+        - status
+        - created
+        - lastUpdate
+        - type
+    NotificationRecipientWithDeviceId:
+      description: |
+        The recipient of the push message. There are two ways to contact a device: either ny specifying the device id or by providing the device token and its provider. If the device token and the device id are specified, then the device token will be used.
+      type: object
+      properties:
+        device_id:
+          description: The unique id of the device in SDC
+          type: string
+          example: a15e3ff0-fb5b-4026-a7d4-a65aa02bbfb8
+    Provider:
+      type: string
+      example: apple
+      enum:
+        - apple
+        - google
+        - huawei
+    NotificationRecipientWithDeviceToken:
+      description: |
+        The recipient of the push message. There is two way to contact a device, either to specify the device id or to give the device token and its provider. If the device token and the device id are specified, then the device token will be used.
+      type: object
+      properties:
+        device_token:
+          description: The unique device token
+          type: string
+          example: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a3924a
+        provider:
+          $ref: '#/components/schemas/Provider'
+    SendPushBulkModel:
+      description: The single payload for sending a push message.
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/MessageReference'
+        to:
+          description: |
+            The recipient of the push message. There is two way to contact a device, either to specify the device id or to give the device token and its provider. If the device token and the device id are specified, then the device token will be used.
+          anyOf:
+            - $ref: '#/components/schemas/NotificationRecipientWithDeviceId'
+            - $ref: '#/components/schemas/NotificationRecipientWithDeviceToken'
+        template_id:
+          $ref: '#/components/schemas/TemplateId'
+        content:
+          $ref: '#/components/schemas/MessagePushContent'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        archive_enabled:
+          $ref: '#/components/schemas/ArchiveEnabled'
+        archive_duration:
+          $ref: '#/components/schemas/ArchiveDuration'
+      required:
+        - reference
+    InAppMessageRecipient:
+      description: The recipient of the push message.
+      type: object
+      properties:
+        device_id:
+          description: The unique device identifier.
+          type: string
+          example: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a3924a
+      required:
+        - device_id
+    InAppButton:
+      description: The Mobile SDK InAppButton detail
+      type: object
+      properties:
+        id:
+          description: The Id of the button
+          type: string
+          example: 2d8a5b95-3c99-424c-a518-59fffe41bfa0
+        label:
+          description: The label of the button
+          type: string
+          example: Go to google
+        value:
+          description: The value of the button
+          type: string
+          example: https://google.com
+        data:
+          description: Custom set of additional data that can be sent within the button
+          type: object
+          additionalProperties:
+            type: string
+        action:
+          $ref: '#/components/schemas/ButtonAction'
+    InAppMessage:
+      description: The Mobile InAppMessage object detail.
+      type: object
+      properties:
+        expiration:
+          description: This value identifies the time when the notification is no longer valid and won't be available for the device. The maximum expiration time that can be defined is Now (UTC) + 2 months.
+          type: string
+          example: '2022-01-13T09:00:16.976Z'
+        type:
+          $ref: '#/components/schemas/InAppMessageType'
+        title:
+          description: The title of the inapp message.
+          type: string
+          example: Example title
+        body:
+          description: The body of the inapp message.
+          type: string
+          example: Example body
+          minLength: 1
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/InAppButton'
+        data:
+          description: Custom set of additional data that can be sent within the event.
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - expiration
+        - body
+        - type
+    SendInAppBulkModel:
+      description: The single payload for sending a in-app message.
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/MessageReference'
+        to:
+          $ref: '#/components/schemas/InAppMessageRecipient'
+        content:
+          $ref: '#/components/schemas/InAppMessage'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+      required:
+        - reference
+    MobileOs:
+      description: Operating system of the device
+      type: string
+      example: ios
+      enum:
+        - ios
+        - android
+        - harmony
+    MobileFramework:
+      description: Framework running on top of the native operating system.
+      type: string
+      example: none
+      enum:
+        - none
+        - reactNative
+        - cordova
+        - xamarinNative
+    PushOptin:
+      description: Identifies the type of push optin the device has.
+      type: string
+      example: optin
+      enum:
+        - optout
+        - optin
+        - provisional
+    Location:
+      description: Last location of a device
+      type: object
+      properties:
+        gps:
+          description: GPS location of a device
+          type: object
+          properties:
+            latitude:
+              description: Latitude part of the gps coordinate
+              type: number
+              example: 54.41
+            longitude:
+              description: Longitude part of the gps coordinate
+              type: number
+              example: 4.44
+        geo_ip:
+          description: Geo ip location of a device
+          type: object
+          properties:
+            latitude:
+              description: Latitude part of the gps coordinate
+              type: number
+              example: 54.41
+            longitude:
+              description: Longitude part of the gps coordinate
+              type: number
+              example: 4.44
+            city:
+              description: Name of the city of the coordinate
+              type: string
+              example: Charleroi
+            country:
+              description: Name of the country of the coordinate
+              type: string
+              example: Belgium
+    MobileDeviceProfileRequest:
+      description: The profile of a mobile device.
+      type: object
+      properties:
+        name:
+          description: Name of the device.
+          type: string
+          example: Bob's phone
+        identity:
+          description: Identity of the device.
+          type: string
+          example: Iphone 13
+        push_token:
+          description: The token that is used to send notifications to the device.
+          type: string
+          example: 2d8a5b95-3c99-424c-a518-59fffe41bfa0
+        timezone:
+          description: Timezone of the device.
+          type: string
+          example: CET
+        sdk_version:
+          description: Version of the selligent SDK that the app uses.
+          type: string
+          example: 2.6.3
+        app_id:
+          description: Id (bundle Id, package name) of the client app.
+          type: string
+          example: com.selligent.test.app
+        app_version:
+          description: Version of the client appId.
+          type: string
+          example: 1.6.4
+        system_version:
+          description: Version of the operating system installed on the device.
+          type: string
+          example: '10.0'
+        language:
+          description: Primary language used by the device in ISO code format.
+          type: string
+          example: fr-be
+        provider:
+          $ref: '#/components/schemas/Provider'
+        operating_system:
+          $ref: '#/components/schemas/MobileOs'
+        framework_type:
+          $ref: '#/components/schemas/MobileFramework'
+        push_optin:
+          $ref: '#/components/schemas/PushOptin'
+        iam_enabled:
+          description: Indicates if we can send In app message to the device.
+          type: boolean
+          example: true
+        iac_enabled:
+          description: Indicates if we can send In app content to the device.
+          type: boolean
+          example: true
+        geo_enabled:
+          description: Indicates if the geo-localisation has been enabled on the device.
+          type: boolean
+          example: true
+        tags:
+          description: Custom set of tags.
+          type: array
+          items:
+            type: string
+          example:
+            - tag_newsletter
+            - tag_press
+        last_location:
+          $ref: '#/components/schemas/Location'
+    MobileDeviceProfileResponse:
+      description: The profile of a mobile device.
+      type: object
+      properties:
+        id:
+          description: The ID of the device.
+          type: string
+          example: 2d8a5b95-3c99-424c-a518-59fffe41bfa0
+        name:
+          description: Name of the device.
+          type: string
+          example: Bob's phone
+        identity:
+          description: Identity of the device.
+          type: string
+          example: Iphone 13
+        push_token:
+          description: The token that is used to send notifications to the device.
+          type: string
+          example: 2d8a5b95-3c99-424c-a518-59fffe41bfa0
+        timezone:
+          description: Timezone of the device.
+          type: string
+          example: CET
+        sdk_version:
+          description: the selligent SDK version used by the app.
+          type: string
+          example: 2.6.3
+        app_id:
+          description: Id (bundle Id, package name) of the client app.
+          type: string
+          example: com.selligent.test.app
+        app_version:
+          description: Version of the client app_id.
+          type: string
+          example: 1.6.4
+        system_version:
+          description: Version of the operating system installed on the device.
+          type: string
+          example: '10.0'
+        language:
+          description: Primary language used by the device in ISO code format.
+          type: string
+          example: fr-be
+        provider:
+          $ref: '#/components/schemas/Provider'
+        operating_system:
+          $ref: '#/components/schemas/MobileOs'
+        framework_type:
+          $ref: '#/components/schemas/MobileFramework'
+        push_optin:
+          $ref: '#/components/schemas/PushOptin'
+        created:
+          description: The time at which the device has been created in UTC.
+          type: string
+          format: date-time
+          example: '2018-04-05T17:31:00.000Z'
+        modified:
+          description: Last time at which the device has been updated in UTC.
+          type: string
+          format: date-time
+          example: '2018-04-05T17:31:00.000Z'
+        iam_enabled:
+          description: Indicates if we can send in app message to the device.
+          type: boolean
+          example: true
+        iac_enabled:
+          description: Indicates if we can send in app content to the device.
+          type: boolean
+          example: true
+        geo_enabled:
+          description: Indicates if geo-localisation has been enabled on the device.
+          type: boolean
+          example: true
+        tags:
+          description: A list of tags for the send message. Tags are useful for group reporting & filtering.
+          type: array
+          items:
+            type: string
+        last_location:
+          $ref: '#/components/schemas/Location'
+    MobileEventField:
+      description: Definition of a field
+      type: object
+      properties:
+        name:
+          description: Name of the field
+          type: string
+    MobileEventFieldMapping:
+      description: Mapping between input and output field.
+      type: object
+      properties:
+        input_field:
+          description: Name of the input field.
+          $ref: '#/components/schemas/MobileEventField'
+        output_field:
+          description: Name to which the input field will be mapped.
+          $ref: '#/components/schemas/MobileEventField'
+          nullable: true
+    MobileEventDefinition:
+      description: A mobile event definition object.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the event definition.
+          type: string
+          example: 21b320d1-cdfd-4de0-b3ef-fb25211bc299
+        name:
+          description: Name of the event.
+          type: string
+          example: app_started
+        mapping:
+          description: Mapping between the fields of an event.
+          type: array
+          items:
+            $ref: '#/components/schemas/MobileEventFieldMapping'
+    MobileEventDefinitionRequest:
+      description: A mobile event definition object.
+      type: object
+      properties:
+        name:
+          description: Name of the event.
+          type: string
+          example: app_started
+        mapping:
+          description: Mapping between sdk fields and sdc fields.
+          type: array
+          items:
+            $ref: '#/components/schemas/MobileEventFieldMapping'
+      required:
+        - name
+        - mapping
+    BounceApiMode:
+      description: Bounce Mode
+      type: string
+      example: direct
+      enum:
+        - direct
+        - indirect
+    BounceType:
+      description: Bounce type
+      type: string
+      enum:
+        - soft
+        - hard
+        - spam
+    MappingRuleResponseCategory:
+      description: |
+        The SMTP outcome response category
+      type: string
+      example: Ok
+      enum:
+        - None
+        - Error
+        - Ok
+        - GreyListed
+        - BlackListed
+        - BadUser
+        - Unavailable
+        - SenderProblem
+        - MailboxFull
+        - Spam
+        - ReceiverProblem
+        - Exclusion
+    Bounce:
+      type: object
+      properties:
+        account_id:
+          description: The unique ID for the account.
+          type: string
+          minLength: 1
+        mapping:
+          $ref: '#/components/schemas/BounceType'
+          nullable: true
+        mode:
+          $ref: '#/components/schemas/BounceApiMode'
+        external_reference:
+          type: string
+          minLength: 1
+        timestamp:
+          type: string
+          format: date-time
+        domain:
+          type: string
+          nullable: true
+        outcome:
+          type: string
+          nullable: true
+        outcome_category:
+          $ref: '#/components/schemas/MappingRuleResponseCategory'
+          nullable: true
+        finalize_reason:
+          type: string
+          nullable: true
+        mailbox:
+          type: string
+          nullable: true
+        list_unsubscribe_header:
+          type: string
+          nullable: true
+      example:
+        account_id: 3822afb319684af18b9664ee327b7c44
+        mapping: hard
+        mode: direct
+        external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+        timestamp: '2023-07-25T19:19:00.0378723+00:00'
+        finalize_reason: hardBounce
+        outcome: 452 System is busy
+        outcome_category: Exclusion
+        domain: example.com
+      additionalProperties: false
+      required:
+        - external_reference
+        - mode
+        - timestamp
+    BounceQueryResponse:
+      description: A Bounce Query response.
+      type: object
+      properties:
+        value:
+          description: List of Bounces.
+          type: array
+          items:
+            $ref: '#/components/schemas/Bounce'
+    BounceUnsubscribe:
+      type: object
+      properties:
+        account_id:
+          description: The unique ID for the account.
+          type: string
+          minLength: 1
+        external_reference:
+          type: string
+          minLength: 1
+        timestamp:
+          type: string
+          format: date-time
+        mailbox:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+        list_unsubscribe_header:
+          type: string
+          nullable: true
+      example:
+        account_id: 3822afb319684af18b9664ee327b7c44
+        mode: indirect
+        external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+        timestamp: '2023-07-26T19:19:00.0378723+00:00'
+        mailbox: unsubscribe@yourdomain.slgnt.us
+        list_unsubscribe_header: <http://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+        domain: example.com
+      additionalProperties: false
+      required:
+        - timestamp
+    BounceUnsubscribeQueryResponse:
+      description: A Bounce Query response.
+      type: object
+      properties:
+        value:
+          description: List of Bounces.
+          type: array
+          items:
+            $ref: '#/components/schemas/BounceUnsubscribe'
+    BounceComplaint:
+      type: object
+      properties:
+        account_id:
+          description: The unique ID for the account.
+          type: string
+          minLength: 1
+        external_reference:
+          type: string
+          minLength: 1
+        timestamp:
+          type: string
+          format: date-time
+        mailbox:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+      example:
+        account_id: 3822afb319684af18b9664ee327b7c44
+        mode: indirect
+        external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+        timestamp: '2023-07-26T19:19:00.0378723+00:00'
+        mailbox: unsubscribe@yourdomain.slgnt.us
+        list_unsubscribe_header: <http://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+        domain: example.com
+      additionalProperties: false
+      required:
+        - external_reference
+        - timestamp
+    BounceComplaintsQueryResponse:
+      description: A Complaints Query response.
+      type: object
+      properties:
+        value:
+          description: List of Bounces.
+          type: array
+          items:
+            $ref: '#/components/schemas/BounceComplaint'
+    StatsResponse:
+      description: statistics for a specific window
+      type: object
+      properties:
+        window:
+          description: The time window in which the metrics occurred
+          type: string
+          example: '2022-04-08T13:36:00+00:00'
+        counters:
+          description: The actual metrics of the totals per event type within the window
+          type: object
+          properties:
+            email_failed:
+              description: The number of failed emails in the window
+              type: integer
+              example: 1
+            email_deferred:
+              description: The number of retried emails in the window
+              type: integer
+              example: 2
+            email_sent:
+              description: The number of succesfull sent emails in the window
+              type: integer
+              example: 37
+            email_archived:
+              description: The number of emails archived in the window
+              type: integer
+              example: 25
+            mobile_failed:
+              description: The number of failed mobile pushes in the window
+              type: integer
+              example: 18
+            mobile_deferred:
+              description: The number of retried mobile pushes in the window
+              type: integer
+              example: 23
+            mobile_sent:
+              description: The number of succesfull sent mobile pushes in the window
+              type: integer
+              example: 42
+            mobile_push_archived:
+              description: The number of mobile pushes archived in the window
+              type: integer
+              example: 25
+            sms_failed:
+              description: The number of failed sms messages in the window
+              type: integer
+              example: 28
+            sms_sent:
+              description: The number of succesfull sent sms messages in the window
+              type: integer
+              example: 0
+            sms_archived:
+              description: The number of sms messages archived in the window
+              type: integer
+              example: 25
+          required:
+            - email_failed
+            - email_deferred
+            - email_sent
+            - email_archived
+            - mobile_failed
+            - mobile_deferred
+            - mobile_sent
+            - mobile_push_archived
+            - sms_failed
+            - sms_sent
+            - sms_archived
+      required:
+        - window
+    StatsResponses:
+      description: The response of the statistics.
+      type: object
+      properties:
+        value:
+          description: An array of statistic items per time window
+          type: array
+          items:
+            $ref: '#/components/schemas/StatsResponse'
+      maxItems: 100
+      minItems: 0
+    CloudEventTrackingEventsType:
+      description: Possible values are all the possible steps a message will take within the system.
+      type: string
+      example: com.sdc.deliveries.email.sent
+      enum:
+        - sdc.archive.email.archived
+        - sdc.api.email.accepted
+        - sdc.imports.email
+        - sdc.deliveries.email.deferred
+        - sdc.deliveries.email.sent
+        - sdc.deliveries.email.failed
+        - sdc.bounces.email.bounced
+        - sdc.bounces.email.complaintfiled
+        - sdc.bounces.email.listunsubscribed
+    MessageEventTrackingResultData:
+      description: Processing event for a message.
+      type: object
+      properties:
+        id:
+          description: Unique reference for the tracking event.
+          type: string
+          example: 351395fa8d2c4fe3ad0fcce08f561491
+        external_reference:
+          $ref: '#/components/schemas/MessageReference'
+        type:
+          $ref: '#/components/schemas/CloudEventTrackingEventsType'
+        timestamp:
+          description: The time the event happened, expressed in UTC.
+          type: string
+          format: date-time
+          example: '2022-03-16T12:56:00Z'
+        description:
+          description: The description of the event.
+          type: string
+          example: Message ID 202203161230539493 accepted for delivery
+      additionalProperties: false
+      required:
+        - external_reference
+        - description
+        - timestamp
+        - type
+    MessageEventTrackingResults:
+      description: List of processing events for a message.
+      type: object
+      properties:
+        value:
+          description: List of processing events for a message.
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEventTrackingResultData'
+      additionalProperties: false
+      required:
+        - value
+    MessageArchiveResultData:
+      description: Metadata of a sent message.
+      type: object
+      properties:
+        message_id:
+          description: This is a unique message ID, which can be referenced to the message ID used in the sending API.
+          type: string
+          example: 674d25d7319b4549a88cefdda049989e_92233793802426
+        channel:
+          description: This is the channel of the sent message.
+          type: string
+          enum:
+            - email
+            - mobile
+            - sms
+          nullable: true
+        tags:
+          description: A list of tags for the send message. Tags are useful for group reporting & filtering.
+          type: array
+          items:
+            type: string
+          example:
+            - zuppy-bounce
+            - resto-order-now-campaign-feb
+          nullable: true
+        metadata:
+          description: A custom field that can be used for passing on external metadata through the sending API. The metadata will be included in the feedback data. This can be a string or stringified JSON object.
+          type: string
+          example: '{"name":"jane.doe","ref":123456789}'
+          nullable: true
+        profile:
+          description: A unique reference for the recipient of the message. The profile reference can be used in all channels for search & filter capabilities  in reporting & for looking up messages in the archive.
+          type: string
+          example: crm-id-123456789
+        attachments:
+          description: 'OPTIONAL: The list of filed attachments, that is attached to the message. Only applicable for e-mail messages.'
+          type: array
+          items:
+            properties:
+              file_name:
+                description: The file name of the attached file. This has to be unique within the list of attachments of the message.
+                type: string
+                example: message_attachment.pdf
+                uniqueItems: true
+              mime_type:
+                description: The mime type of the attached file
+                type: string
+                example: application/pdf
+        subject:
+          description: 'OPTIONAL: The subject of message. Only applicable for e-mail messages.'
+          type: string
+          example: Hello world from SDC
+        timestamp:
+          description: The time the event happened, expressed in UTC.
+          type: string
+          example: '2022-03-16T12:56:00.1260605+00:00'
+        time_to_live:
+          description: The expiration time in seconds after which the message is deleted, regardless of state. For example, 1 month is 2630000 seconds, 1 year is 31536000 seconds.
+          type: integer
+          example: 31536000
+      required:
+        - message_id
+        - timestamp
+        - channel
+        - time_to_live
+    LinkCount:
+      description: The total amount of items across all pages. Add `$count=true` to the querystring to indicate to the server that this value is required.
+      type: integer
+      format: int64
+      example: 100
+    LinkPrevious:
+      description: An opaque URL that can be used to paginate the results of the request.
+      type: string
+      example: https://customername.sdc.slgnt.eu/lists/v2/audiences?$count=true&$top=3&$skip=3
+    LinkNext:
+      description: An opaque URL that can be used to paginate the results of the request.
+      type: string
+      example: https://customername.sdc.slgnt.eu/lists/v2/audiences?$count=true&$top=3&$skip=9
+    MessageArchiveResults:
+      description: A filtered list of sent messages.
+      type: object
+      properties:
+        value:
+          description: List of sent messages, based on the query options.
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageArchiveResultData'
+        '@count':
+          $ref: '#/components/schemas/LinkCount'
+        '@previous_link':
+          $ref: '#/components/schemas/LinkPrevious'
+        '@next_link':
+          $ref: '#/components/schemas/LinkNext'
+    SmsRecipient:
+      description: The recipient of the SMS message.
+      type: object
+      properties:
+        number:
+          description: The full qualified SMS number
+          type: string
+          example: '0032486998844'
+        messageId:
+          description: a unique Message Id unique per contacts
+          type: string
+          example: 123456
+    SmsContent:
+      description: The content of the SMS message.
+      type: object
+      properties:
+        message:
+          description: The content of the SMS message
+          type: string
+          example: Hello world from SDC SMS
+        type:
+          description: The type of the SMS message
+          type: string
+          example: auto|GSM-7|Unicode
+    SendSmsBulkModel:
+      description: The single payload for sending a e-mail message.
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/MessageReference'
+        to:
+          $ref: '#/components/schemas/SmsRecipient'
+        content:
+          $ref: '#/components/schemas/SmsContent'
+        tags:
+          description: A list of tags relevant for TODO?
+          type: array
+          items:
+            type: string
+          example:
+            - zuppy-bounce
+        customsendtime:
+          description: In case a custom send time is desired, this date time for sending can be enterred in UTC format. If not filled in the message will be send instant.
+          type: string
+          example: TODO
+          nullable: true
+    SendSmsBulkResponse:
+      description: Success
+      type: array
+      items:
+        type: object
+        properties:
+          reference:
+            $ref: '#/components/schemas/MessageReference'
+          id:
+            description: TODO
+            type: string
+            example: TODO
+            minLength: 1
+          state:
+            description: TODO
+            type: number
+            example: 1
+        required:
+          - externalId
+          - id
+          - state
+      uniqueItems: true
+    OperationsResult:
+      description: A list of operations.
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationsResultData'
+        '@count':
+          description: Count of the total items
+          type: integer
+          format: int64
+        '@nextlink':
+          description: (TODO)
+          type: string
+          example: https://customername.sdc.slgnt.eu/operations?$count=true&$top=3&$skip=3
+    OauthTokenRequest:
+      description: Request an Oauth token
+      type: object
+      properties:
+        client_id:
+          description: The Oauth client ID provided by Selligent
+          type: string
+          example: 12345
+        client_secret:
+          description: The Oauth client secret provided by Selligent
+          type: string
+          example: 123abc
+        account_id:
+          description: The Selligent account ID, which refers to the account/tenant.
+          type: string
+          example: 12345ABCDE6789FGHIJ
+        grant_type:
+          description: The method used to retrieve an access token
+          type: string
+          default: client_credentials
+        audience:
+          description: Refers to the application/server for which the token is requested.
+          type: string
+          default: https://sdc.slgnt.eu
+      required:
+        - client_id
+        - client_secret
+        - account_id
+        - grant_type
+        - audience
+    OauthTokenResponse:
+      description: OAuth token response
+      properties:
+        access_token:
+          description: The access token provided in the response
+          type: string
+          example: abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        token_type:
+          description: The token type (currently this is always "Bearer")
+          type: string
+          enum:
+            - Bearer
+        refresh_token:
+          description: The refresh token provided in the response
+          type: string
+          example: 1234567890abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        scope:
+          description: The scope of the access request
+          type: string
+          example: send:email
+        expires_in:
+          description: The number of seconds until the access token expires
+          type: number
+          example: 86400
+      required:
+        - access_token
+        - scope
+        - token_type
+        - expires_in
+    OauthErrorResponse:
+      description: OAuth error response
+      type: object
+      properties:
+        error:
+          description: Oauth error code
+          type: string
+          enum:
+            - access_denied
+            - invalid_client
+            - invalid_grant
+            - unsupported_grant_type
+        error_description:
+          description: Oauth error description
+          type: string
+          example: Unauthorized
+      required:
+        - error
+        - error_description
+    CloudEventId:
+      description: Identifies the event. The ID is unique for each source.
+      type: string
+      example: 1516952e520547049b8897b24e44553e
+    CloudEventSource:
+      description: The context in which this event has happend.
+      type: string
+      example: /sdc/mailer
+    CloudEventDeliveryTypeSent:
+      description: Type of processing & sending event. `com.sdc.deliveries.email.sent` in this case. An event that is triggered when the e-mail message is sent towards the ISP and SDC has gotten an `success` ISP response back.
+      type: string
+      example: com.sdc.deliveries.email.sent
+      enum:
+        - com.sdc.deliveries.email.sent
+    CloudEventSubject:
+      description: A description / additional info for the event in the context of the specified source.
+      type: string
+      example: 674d25d7319b4549a88cefdda049989e_92233793802426
+      nullable: true
+    CloudEventTime:
+      description: Timestamp of when the event happened. Expressed in UTC.
+      type: string
+      format: date-time
+      example: '2018-04-05T17:31:00.000+00:00'
+      nullable: true
+    CloudEventSpecVersion:
+      description: The version of the CloudEvents specification which the event uses. For more information see <a href="https://cloudevents.io/">cloudEvents</a>.
+      type: string
+      default: '1.0'
+    CloudEventDataSchema:
+      description: Represents a URI for the schema to which the data adheres to.
+      type: string
+      nullable: true
+    CloudEventDataContentType:
+      description: Content type of the 'data' field provided by the event.
+      type: string
+      default: application/json
+      nullable: false
+    CloudEventExternalReference:
+      description: This is the reference provided by the client in the payload of the message.
+      type: string
+      example: 674d25d7319b4549a88cefdda049989e_92233793802426
+    CloudEventTimestamp:
+      description: The time the event happened, expressed in UTC.
+      type: string
+      example: '2022-03-16T12:56:00.1260605+00:00'
+    CloudEventAccount:
+      description: The account ID this event is triggered for.
+      type: string
+      example: 3822afb319684af18b9664ee327b7c44
+    CloudEventSdcEmailDeliveriesDataSent:
+      description: CloudEvent 'data' content. The event payload.
+      type: object
+      properties:
+        result:
+          description: |
+            The code for the message delivery state is:
+             * **success** - The message was delivered, successfully.
+          type: string
+          example: success
+        outcome:
+          description: The response from the SMTP server. (for analysis of bounces)
+          type: string
+          example: 250 Ok
+        recipient:
+          description: The target recipient of the message.
+          type: string
+          example: jane.doe@example.com
+        external_reference:
+          $ref: '#/components/schemas/CloudEventExternalReference'
+        timestamp:
+          $ref: '#/components/schemas/CloudEventTimestamp'
+        account_id:
+          $ref: '#/components/schemas/CloudEventAccount'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        outcome_category:
+          $ref: '#/components/schemas/MappingRuleResponseCategory'
+      nullable: true
+    CloudEventSdcEmailDeliveriesSent:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CloudEventId'
+        source:
+          $ref: '#/components/schemas/CloudEventSource'
+        type:
+          $ref: '#/components/schemas/CloudEventDeliveryTypeSent'
+        subject:
+          $ref: '#/components/schemas/CloudEventSubject'
+        time:
+          $ref: '#/components/schemas/CloudEventTime'
+        specversion:
+          $ref: '#/components/schemas/CloudEventSpecVersion'
+        dataschema:
+          $ref: '#/components/schemas/CloudEventDataSchema'
+        datacontenttype:
+          $ref: '#/components/schemas/CloudEventDataContentType'
+        data:
+          $ref: '#/components/schemas/CloudEventSdcEmailDeliveriesDataSent'
+    CloudEventDeliveryTypeFailed:
+      description: Type of processing & sending event.  `com.sdc.deliveries.email.failed` in this case. An event that is triggered when the e-mail message is sent towards the ISP and SDC has gotten an `undeliverable` ISP response back.
+      type: string
+      example: com.sdc.deliveries.email.failed
+      enum:
+        - com.sdc.deliveries.email.failed
+    FinalizeReason:
+      description: |
+        Reason why the email has not been delivered
+      type: string
+      example: TooManyRetries
+      enum:
+        - TooManyRetries
+        - TooManyDeferrals
+        - ImportBlacklist
+        - ImportFailed
+        - Expired
+        - Restriction
+        - MxServersDenied
+        - NoMxServersAssigned
+        - NonExistingDomainName
+        - DNSServerError
+        - DNSTimeout
+        - HardBounce
+        - BadTemplate
+    CloudEventSdcEmailDeliveriesDataFailed:
+      description: CloudEvent 'data' content. The event payload.
+      type: object
+      properties:
+        result:
+          description: |
+            The code for the message delivery state is :
+             * **undeliverable** - The message cannot be delivered and no retries are necessary.
+          type: string
+          example: failed
+        outcome:
+          description: The response from the SMTP server. (for analysis of bounces)
+          type: string
+          example: 250 Ok
+        recipient:
+          description: The target recipient of the message.
+          type: string
+          example: jane.doe@example.com
+        external_reference:
+          $ref: '#/components/schemas/CloudEventExternalReference'
+        timestamp:
+          $ref: '#/components/schemas/CloudEventTimestamp'
+        account_id:
+          $ref: '#/components/schemas/CloudEventAccount'
+        context:
+          $ref: '#/components/schemas/MessageContext'
+        outcome_category:
+          $ref: '#/components/schemas/MappingRuleResponseCategory'
+        finalize_reason:
+          $ref: '#/components/schemas/FinalizeReason'
+      nullable: true
+    CloudEventSdcEmailDeliveriesFailed:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CloudEventId'
+        source:
+          $ref: '#/components/schemas/CloudEventSource'
+        type:
+          $ref: '#/components/schemas/CloudEventDeliveryTypeFailed'
+        subject:
+          $ref: '#/components/schemas/CloudEventSubject'
+        time:
+          $ref: '#/components/schemas/CloudEventTime'
+        specversion:
+          $ref: '#/components/schemas/CloudEventSpecVersion'
+        dataschema:
+          $ref: '#/components/schemas/CloudEventDataSchema'
+        datacontenttype:
+          $ref: '#/components/schemas/CloudEventDataContentType'
+        data:
+          $ref: '#/components/schemas/CloudEventSdcEmailDeliveriesDataFailed'
+    CloudEventBounceType:
+      description: Type of bounce that has occurred for this event.
+      type: string
+      example: com.sdc.bounces.email.bounced
+      enum:
+        - com.sdc.bounces.email.bounced
+        - com.sdc.bounces.email.complaintfiled
+        - com.sdc.bounces.email.listunsubscribed
+    CloudEventMailbox:
+      description: The mailbox the async bounce was received on.
+      type: string
+      example: bounce@service.slgnt.eu
+    CloudEventSdcEmailBouncesData:
+      description: CloudEvent 'data' content. The SDC bounce e-mail bounce payload.
+      type: object
+      properties:
+        account_id:
+          $ref: '#/components/schemas/CloudEventAccount'
+        external_reference:
+          $ref: '#/components/schemas/CloudEventExternalReference'
+        mailbox:
+          $ref: '#/components/schemas/CloudEventMailbox'
+        timestamp:
+          $ref: '#/components/schemas/CloudEventTimestamp'
+    CloudEventSdcEmailBounces:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CloudEventId'
+        source:
+          $ref: '#/components/schemas/CloudEventSource'
+        type:
+          $ref: '#/components/schemas/CloudEventBounceType'
+        subject:
+          $ref: '#/components/schemas/CloudEventSubject'
+        time:
+          $ref: '#/components/schemas/CloudEventTime'
+        specversion:
+          $ref: '#/components/schemas/CloudEventSpecVersion'
+        dataschema:
+          $ref: '#/components/schemas/CloudEventDataSchema'
+        datacontenttype:
+          $ref: '#/components/schemas/CloudEventDataContentType'
+        data:
+          $ref: '#/components/schemas/CloudEventSdcEmailBouncesData'
+    CloudEventSdcMobileData:
+      description: CloudEvent 'data' content. The event payload.
+      type: object
+      properties:
+        appId:
+          description: The unique reference of Application.
+          type: string
+          example: 1d0bf78f-187a-4b8d-8ed4-5cf30758ae35
+        owner:
+          description: Identifies the tenant (Client) and the account (specific routing etc..) used to send the mobile message.
+          type: object
+          properties:
+            accountId:
+              description: An explanation about the purpose of this instance.
+              type: string
+              example: 3822afb319684af18b9664ee327b7c44
+            tenantId:
+              description: An explanation about the purpose of this instance.
+              type: string
+              example: '1'
+        state:
+          description: An explanation about the purpose of this instance.
+          type: string
+          example: success
+        deviceToken:
+          description: The target recipient of the message, identified by the unique device token
+          type: string
+          example: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a3924a
+        provider:
+          $ref: '#/components/schemas/Provider'
+        providerOutcome:
+          description: The response from the provider (for analysis of bounces)
+          type: string
+          example: MOBILE_PUSH_DELIVERY_SIMULATOR_FAILUR
+        tags:
+          description: A set of client defined strings that are used for reporting.
+          type: array
+          items:
+            type: string
+          example:
+            - transactional
+            - DE
+        connectionType:
+          description: An explanation about the purpose of this instance.
+          type: string
+          example: SIMULATOR
+        externalReference:
+          description: This is the external_reference provided by the client in the payload of the message.
+          type: string
+          example: 674d25d7319b4549a88cefdda049989e_92233793802426
+        deliveryTime:
+          description: The time the message got delivered, expressed in UTC.
+          type: string
+          example: '2022-03-16T12:56:00.1260605+00:00'
+        requestTime:
+          description: The requested time for the message delivery, expressed in UTC.
+          type: string
+          example: '2022-03-16T12:56:00.1260605+00:00'
+        retryCount:
+          description: Number of retries to deliver the message at the provider.
+          type: integer
+          example: 1
+          default: 0
+      nullable: true
+    CloudEventSdcMobile:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CloudEventId'
+        source:
+          example: /sdc/pushsender
+          $ref: '#/components/schemas/CloudEventSource'
+        type:
+          description: Type of occurrence which has happened. Often this attribute is used for routing, observability, policy enforcement, etc.
+          type: string
+          example: com.sdc.deliveries.mobile.push.success
+          enum:
+            - com.sdc.deliveries.mobile.push.success
+            - com.sdc.deliveries.mobile.push.failed
+            - com.sdc.deliveries.mobile.push.deferred
+        subject:
+          description: A description / additional info for the event in the context of the specified source.
+          type: string
+          example: tenant/E3320D6E-725C-453B-8BA6-AC4E8087F517/app/1d0bf78f-187a-4b8d-8ed4-5cf30758ae35/ref/external1235
+          nullable: true
+        time:
+          description: Timestamp of when the event happened. Expressed in UTC.
+          type: string
+          format: date-time
+          example: '2018-04-05T17:31:00.000+00:00'
+          nullable: true
+        specversion:
+          description: The version of the CloudEvents specification which the event uses. For more information see <a href="https://cloudevents.io/">cloudEvents</a>
+          type: string
+          default: '1.0'
+        dataschema:
+          description: Represents a URI for the schema to which the data adheres to.
+          type: string
+          nullable: true
+        datacontenttype:
+          description: Content type of the 'data' field provided by the event.
+          type: string
+          default: application/json
+          nullable: false
+        data:
+          $ref: '#/components/schemas/CloudEventSdcMobileData'
+  examples:
+    sample-send-email-full:
+      value:
+        - reference: 2a0a0b3e71874163860d496b0283a790
+          content:
+            html: <html>This is the HTML content of the message</html>
+            text: This is the Text content of the message
+            attachments:
+              - file_name: placeholder1.png
+                data: iVBORw0KGdgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYI=
+                mime_type: image/png
+              - file_name: placeholder2.png
+                data: iVBORw0KGdgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYI=
+                mime_type: image/png
+          headers:
+            subject: Hello world from SDC
+            to:
+              alias: John Doe
+              address: john.doe@example.com
+            from:
+              alias: Jane Doe
+              address: jane.doe@example.com
+            reply:
+              alias: John Doe
+              address: john.doe@example.com
+            list_unsubscribe: <https://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+            optional:
+              - name: X-GRID-REF
+                value: headervalue
+          context:
+            tags:
+              - zuppy-bounce
+              - blackfriday-2022
+            metadata: '{"name":"john","ref":123}'
+            profile: 12345-ABCDEFG-6789
+          custom_send_time: '2022-09-02T12:00:00'
+          time_to_live: P2D
+          archive_enabled: true
+          archive_duration: P30D
+      summary: A payload example for e-mail with all fields explicitly set.
+    sample-send-email-without-attachments:
+      value:
+        - reference: 2a0a0b3e71874163860d496b0283a790
+          content:
+            html: <html>This is the HTML content of the message</html>
+            text: This is the Text content of the message
+          headers:
+            subject: Hello world from SDC
+            to:
+              alias: John Doe
+              address: john.doe@example.com
+            from:
+              alias: Jane Doe
+              address: jane.doe@example.com
+            reply:
+              alias: John Doe
+              address: john.doe@example.com
+            list_unsubscribe: <https://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+            optional:
+              - name: X-GRID-REF
+                value: headervalue
+          context:
+            tags:
+              - zuppy-bounce
+              - blackfriday-2022
+            metadata: '{"name":"john","ref":123}'
+            profile: 12345-ABCDEFG-6789
+          custom_send_time: '2022-09-02T12:00:00'
+          time_to_live: P2D
+      summary: A payload example for e-mail without attachments.
+    sample-send-email-without-optional-data:
+      value:
+        - reference: 2a0a0b3e71874163860d496b0283a790
+          content:
+            html: <html>This is the HTML content of the message</html>
+            text: This is the Text content of the message
+          headers:
+            subject: Hello world from SDC
+            to:
+              address: john.doe@example.com
+            from:
+              address: jane.doe@example.com
+      summary: A payload example for minimal e-mail with only required fields.
+    sample-send-email-with-optional-rfc-headers:
+      value:
+        - reference: 2a0a0b3e71874163860d496b0283a791
+          content:
+            html: <html>This is the HTML content of the message</html>
+            text: This is the Text content of the message
+          headers:
+            subject: Hello world from SDC
+            to:
+              alias: John Doe
+              address: john.doe@example.com
+            from:
+              alias: Jane Doe
+              address: jane.doe@example.com
+            reply:
+              alias: John Doe
+              address: john.doe@example.com
+            list_unsubscribe: <https://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+            optional:
+              - name: X-GRID-REF
+                value: headervalue
+              - name: Precedence
+                value: bulk
+              - name: Auto-Submitted
+                value: auto-replied
+              - name: List-Id
+                value: List Header Mailing List <list-header.nisto.com>
+              - name: List-Help
+                value: <mailto:list-info@host.com> (Info about the list)
+          context:
+            tags:
+              - blackfriday-2022
+              - promo
+            metadata: '{"name":"john","ref":123}'
+            profile: 12345-ABCDEFG-6789
+          custom_send_time: '2022-09-02T12:00:00'
+          time_to_live: P2D
+      summary: A payload example for e-mail with supported optional headers.
+    sample-broadcast-send-push-apple-from-template:
+      value:
+        to:
+          audience: '*'
+        template_id: demo-push-template-id
+        context:
+          tags:
+            - demo
+        archive_enabled: true
+        archive_duration: P30D
+      summary: Broadcast from template 'demo-push-template-id'
+    sample-broadcast-send-push-apple-with-content:
+      value:
+        to:
+          audience: '*'
+        context:
+          tags:
+            - demo
+        archive: true
+        content:
+          title: Hello world from SDC to iOS
+          body: Hope you like this push notification provided by SDC.
+          badge: 1
+          sound: mySound.wav
+          buttons:
+            - id: YourButtonId
+              label: Hey it's a button with a deeplink
+              value: yourscheme://product?id=1
+              action: deeplink
+          type: withInAppMsg
+          iam:
+            title: Hello world
+            body: Welcome to SDC for iOS, happy to have you.
+            type: alert
+            buttons:
+              - id: YourButtonId
+                label: Hey visit our website !
+                value: https://www.yourwebsite.com
+                action: url
+          apple:
+            interruption_level: active
+            relevance_score: 0.8
+      summary: Broadcast with content
+    push-broadcast-execution-result:
+      value:
+        id: cf18c438-147a-41a9-838c-1568527bcb79
+        created: '2022-05-05T10:17:58.000Z'
+        started: '2022-05-05T10:18:00.000Z'
+        lastUpdate: '2022-05-05T10:18:15.000Z'
+        duration: '00:00:15.1736920'
+        status: Succeeded
+        type: broadcast
+        properties:
+          appId: demo-app-01
+          template_id: d7ae8c84f9ba4893a35efceeca15f342
+          device_count: '20'
+          audience_calculation_timespent: '00:00:45.146'
+          failure_count: '0'
+    sample-send-push-with-device-id:
+      value:
+        - reference: ref-device-id-168981448964
+          to:
+            device_id: a15e3ff0-fb5b-4026-a7d4-a65aa02bbfb8
+          content:
+            title: Hello world from SDC
+            body: Hope you like this push notification provided by SDC.
+            badge: 1
+            sound: mySound.wav
+            buttons:
+              - id: YourButtonId
+                label: Hey it's a button with a deeplink
+                value: yourscheme://product?id=1
+                action: deeplink
+            type: withInAppMsg
+            iam:
+              title: Hello world
+              body: Welcome to SDC, happy to have you.
+              type: alert
+              buttons:
+                - id: YourButtonId
+                  label: Hey visit our website !
+                  value: https://www.yourwebsite.com
+                  action: url
+            expiration: '2022-05-05T10:18:25'
+            main_action:
+              value: myschema://mydeeplink
+              action: deeplink
+            rich_content:
+              url: https://mydomain.com/staticfiles/myimage.jpg
+              content_type: image
+          context:
+            tags:
+              - device_id
+          archive_enabled: true
+          archive_duration: P30D
+      summary: A payload example for a Push notification with a device id target
+    sample-send-push-apple:
+      value:
+        - reference: ref-apple-168981448966
+          to:
+            device_token: 682544ff847cfdgb2cf41197093391e58c8514bcbd583507a4229b036f775b97
+            provider: apple
+          content:
+            title: Hello world from SDC to iOS
+            body: Hope you like this push notification provided by SDC.
+            badge: 1
+            sound: mySound.wav
+            buttons:
+              - id: YourButtonId
+                label: Hey it's a button with a deeplink
+                value: yourscheme://product?id=1
+                action: deeplink
+            type: withInAppMsg
+            iam:
+              title: Hello world
+              body: Welcome to SDC for iOS, happy to have you.
+              type: alert
+              buttons:
+                - id: YourButtonId
+                  label: Hey visit our website !
+                  value: https://www.yourwebsite.com
+                  action: url
+            expiration: '2022-05-05T10:18:25'
+            main_action:
+              value: myschema://mydeeplink
+              action: deeplink
+            rich_content:
+              url: https://mydomain.com/staticfiles/myimage.jpg
+              content_type: image
+            apple:
+              interruption_level: active
+              relevance_score: 0.8
+          context:
+            tags:
+              - apple
+            profile: user_id_1
+            metadata: oiuzofuohnzefouu_encoded
+          archive_enabled: true
+          archive_duration: P30D
+      summary: A payload example for a Apple Push notification
+    sample-send-push-google:
+      value:
+        - reference: ref-google-168981448964
+          to:
+            device_token: 682544ff847cfdgb2cf41197093391e58c8514bcbd583507a4229b036f775b97
+            provider: google
+          content:
+            title: Hello world from SDC to google
+            body: Hope you like this push notification provided by SDC.
+            badge: 1
+            sound: mySound.wav
+            buttons:
+              - id: YourButtonId
+                label: Hey it's a button with a deeplink
+                value: yourscheme://product?id=1
+                action: deeplink
+            type: withInAppMsg
+            iam:
+              title: Hello world
+              body: Welcome to SDC for google, happy to have you.
+              type: alert
+              buttons:
+                - id: YourButtonId
+                  label: Hey visit our website !
+                  value: https://www.yourwebsite.com
+                  action: url
+            expiration: '2022-05-05T10:18:25'
+            main_action:
+              value: myschema://mydeeplink
+              action: deeplink
+            rich_content:
+              url: https://mydomain.com/staticfiles/myimage.jpg
+              content_type: image
+          context:
+            tags:
+              - google
+          archive_enabled: true
+          archive_duration: P30D
+      summary: A payload example for a Google Push notification
+    sample-send-push-huawei:
+      value:
+        - reference: ref-huawei-168981448964
+          to:
+            device_token: 682544ff847cfdgb2cf41197093391e58c8514bcbd583507a4229b036f775b97
+            provider: huawei
+          content:
+            title: Hello world from SDC to google
+            body: Hope you like this push notification provided by SDC.
+            badge: 1
+            sound: mySound.wav
+            buttons:
+              - id: YourButtonId
+                label: Hey it's a button with a deeplink
+                value: yourscheme://product?id=1
+                action: deeplink
+            type: withInAppMsg
+            iam:
+              title: Hello world
+              body: Welcome to SDC for huawei, happy to have you.
+              type: alert
+              buttons:
+                - id: YourButtonId
+                  label: Hey visit our website !
+                  value: https://www.yourwebsite.com
+                  action: url
+            expiration: '2022-05-05T10:18:25'
+            main_action:
+              value: myschema://mydeeplink
+              action: deeplink
+            rich_content:
+              url: https://mydomain.com/staticfiles/myimage.jpg
+              content_type: image
+          context:
+            tags:
+              - huawei
+          archive_enabled: true
+          archive_duration: P30D
+      summary: A payload example for a Huawei Push notification
+    sample-send-push-apple-from-template:
+      value:
+        - reference: ref-apple-168981448964
+          to:
+            device_token: 682544ff847cfdgb2cf41197093391e58c8514bcbd583507a4229b036f775b97
+            provider: apple
+          template_id: demo-push-template-id
+          context:
+            tags:
+              - apple
+            profile: user_id_1
+            metadata: oiuzofuohnzefouu_encoded
+          archive_enabled: true
+          archive_duration: P30D
+      summary: Apple Push notification from template 'ref123'
+    sample-sdc-bounces-email-bounces:
+      value:
+        value:
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            mapping: hard
+            mode: direct
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-25T19:19:00.0378723+00:00'
+            finalize_reason: hardBounce
+            outcome: 452 System is busy
+            outcome_category: Exclusion
+            domain: example.com
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            mapping: spam
+            mode: indirect
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-26T19:19:00.0378723+00:00'
+            mailbox: bounces@yourdomain.slgnt.us
+            domain: example.com
+    sample-sdc-bounces-email-listunsubscribes:
+      value:
+        value:
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-25T19:19:00.0378723+00:00'
+            mailbox: unsubscribe@yourdomain.slgnt.us
+            list_unsubscribe_header: <http://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+            domain: example.com
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-26T19:19:00.0378723+00:00'
+            mailbox: unsubscribe@yourdomain.slgnt.us
+            list_unsubscribe_header: <http://www.example.com/unsubscribe.aspx?ID=123456>, <mailto:unsubscribe@example.com?subject=unsubscribe 123456>
+            domain: example.com
+    sample-sdc-bounces-email-complaints:
+      value:
+        value:
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-25T19:19:00.0378723+00:00'
+            mailbox: complaints@yourdomain.slgnt.us
+            domain: example.com
+          - account_id: 3822afb319684af18b9664ee327b7c44
+            external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+            timestamp: '2023-07-26T19:19:00.0378723+00:00'
+            mailbox: complaints@yourdomain.slgnt.us
+            domain: example2.com
+    sample-reporting-messages-archive:
+      value:
+        value:
+          - message_id: 370d25d7319b4549a88cefdda049989e_92233793802426
+            channel: email
+            tags:
+              - zuppy-bounce
+              - resto-order-now-campaign-spring
+            metadata: '{"name":"jane.doe","ref":123456789}'
+            profile: crm-id-123456789
+            subject: RestoBar - Order Now!
+            timestamp: '2022-03-16T12:56:00.1260605'
+            time_to_live: 31536000
+          - message_id: 674d25d7319b4549a88cefdda049989e_3456GHKJ56789
+            channel: email
+            tags:
+              - zuppy-bounce
+              - singlesday-summer
+            metadata: '{"name":"jane.doe","ref":456}'
+            profile: 12345-ABCDEFG-6789
+            attachments:
+              - file_name: message_attachment.pdf
+                mime_type: application/pdf
+            subject: Singles day restaurant voucher
+            timestamp: '2022-03-18T11:25:00.1260605'
+            time_to_live: 2630000
+        '@count': 2
+        '@previous_link': https://customername.sdc.slgnt.eu/api/reporting/v1/profile/{profileId}/archive?start=2022-04-01T00:16:00Z&end=2022-06-01T00:16:00Z&$count=true&$top=3&$skip=0
+        '@next_link': https://customername.sdc.slgnt.eu/api/reporting/v1/profile/{profileId}/archive?start=2022-04-01T00:16:00Z&end=2022-06-01T00:16:00Z&$count=true&$top=3&$skip=3
+      summary: A sample of the message archive results.
+    sample-operations-push-broadcast:
+      value:
+        value:
+          - id: bbadbeef-b3ab-40af-b05c-c0ffee6544cd
+            created: '2020-06-19T12:01:03.456Z'
+            lastUpdate: '2020-06-19T12:06:03.456Z'
+            status: Succeeded
+            type: push_broadcast
+          - id: 8a55152e-b3ab-40af-b05c-ef9a1c6544cd
+            created: '2020-06-19T12:01:07.456Z'
+            lastUpdate: '2020-06-19T12:01:09.456Z'
+            status: Running
+            type: push_broadcast
+        '@count': 68
+        '@nextLink': https://customername.sdc.slgnt.eu/operations?$count=true&$top=3&$skip=3
+      summary: A sample of the operations results
+    sample-operations-detail:
+      value:
+        id: bbadbeef-b3ab-40af-b05c-c0ffee6544cd
+        created: '2020-06-19T12:01:03.456Z'
+        lastUpdate: '2020-06-19T12:06:03.456Z'
+        status: Succeeded
+        type: ListExport
+        resourceLocation: https://customername.sdc.slgnt.eu/message/v1/send
+        properties:
+          reportLocation: https://customername.sdc.slgnt.eu/api/message/v1/send/1234567890/reports/ABC-123-DEF-456
+    sample-sdc-deliveries-email-sent:
+      value:
+        id: 1516952e520547049b8897b24e44553e
+        source: /sdc
+        type: com.sdc.deliveries.email.sent
+        time: '2022-03-16T12:56:04.8111884Z'
+        specversion: '1.0'
+        dataschema: https://preview-developers.slgnt.eu/events/sdc#message-sdc.deliveries.email.sent
+        datacontenttype: application/json
+        subject: 674d25d7319b4549a88cefdda049989e_92233793802426
+        data:
+          result: success
+          context:
+            profile: crm-id-123456789
+            tags:
+              - resto-order-now-campaign-spring
+            metadata: '{"name":"jane.doe","ref":123456789}'
+          outcome: 250 Ok
+          recipient: jane.doe@example.com
+          external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+          timestamp: '2022-03-16T12:56:00.1260605'
+          outcome_category: Ok
+    sample-sdc-deliveries-email-failed:
+      value:
+        id: 1516952e520547049b8897b24e44553e
+        source: /sdc
+        type: com.sdc.deliveries.email.failed
+        time: '2022-03-16T12:56:04.8111884Z'
+        specversion: '1.0'
+        dataschema: https://preview-developers.slgnt.eu/events/sdc#message-sdc.deliveries.email.failed
+        datacontenttype: application/json
+        subject: 674d25d7319b4549a88cefdda049989e_92233793802426
+        data:
+          result: undeliverable
+          context:
+            profile: crm-id-123456789
+            tags:
+              - resto-order-now-campaign-spring
+            metadata: '{"name":"jane.doe","ref":123456789}'
+          outcome: 5.1.1 https://support.google.com/mail/?p=NoSuchUser o10-20020aa7c50a000000b0050480da034asi8374813edq.27 - gsmtp
+          recipient: jane.doe@example.com
+          external_reference: 674d25d7319b4549a88cefdda049989e_92233793802426
+          timestamp: '2022-03-16T12:56:00.1260605'
+          outcome_category: SenderProblem
+          finalize_reason: TooManyRetries
+    sample-sdc-bounces-email-bounced:
+      value:
+        id: 4c5cdac78da04350b0b32700a66bbb51
+        source: /sdc
+        type: com.sdc.bounces.email.bounced
+        subject: cd078723-7b40-4a00-90a8-83b0170be1d5
+        time: '2022-03-10T09:37:05.8198818Z'
+        specversion: '1.0'
+        dataschema: https://preview-developers.slgnt.eu/events/sdc#message-sdc.bounces.email.bounced
+        datacontenttype: application/json
+        data:
+          account_id: 3822afb319684af18b9664ee327b7c44
+          external_reference: 4c5cdac78da04350b0b32700a66bbb51
+          subject: This is a mail sent from SDC
+          mailbox: bounce@service.slgnt.eu
+          timestamp: '2022-03-10T09:37:05.7299959+00:00'
+    sample-sdc-bounces-email-complaintfiled:
+      value:
+        id: 4c5cdac78da04350b0b32700a66bbb51
+        source: /sdc
+        type: com.sdc.bounces.email.complaintfiled
+        subject: cd078723-7b40-4a00-90a8-83b0170be1d5
+        time: '2022-03-10T09:37:05.8198818Z'
+        specversion: '1.0'
+        dataschema: https://preview-developers.slgnt.eu/events/sdc#message-sdc.bounces.email.complaintfiled
+        datacontenttype: application/json
+        data:
+          account_id: 3822afb319684af18b9664ee327b7c44
+          external_reference: 4c5cdac78da04350b0b32700a66bbb51
+          subject: This is a mail sent from SDC
+          mailbox: complaint@service.slgnt.eu
+          timestamp: '2022-03-10T09:37:05.7299959+00:00'
+    sample-sdc-bounces-email-listunsubscribed:
+      value:
+        id: 4c5cdac78da04350b0b32700a66bbb51
+        source: /sdc
+        type: com.sdc.bounces.email.listunsubscribed
+        subject: cd078723-7b40-4a00-90a8-83b0170be1d5
+        time: '2022-03-10T09:37:05.8198818Z'
+        specversion: '1.0'
+        dataschema: https://preview-developers.slgnt.eu/events/sdc#message-sdc.bounces.email.listunsubscribed
+        datacontenttype: application/json
+        data:
+          account_id: 3822afb319684af18b9664ee327b7c44
+          external_reference: 4c5cdac78da04350b0b32700a66bbb51
+          subject: This is a mail sent from SDC
+          mailbox: listunsubscribe@service.slgnt.eu
+          timestamp: '2022-03-10T09:37:05.7299959+00:00'
+    sample-sdc-deliveries-mobile-push-success:
+      value:
+        id: 3f1e8f47-1ad4-4a5f-8a2f-0cc9e0c66cae
+        source: /sdc/pushsender
+        type: com.sdc.deliveries.mobile.push.success
+        time: '2022-03-15T12:54:58.5739836Z'
+        specversion: '1.0'
+        dataschema: '#/sdc/events/pushDelivered/v1'
+        datacontenttype: application/json
+        subject: tenantid/00000000-0000-0000-0000-000000000000/app/6275c4c0-9575-455a-a42e-109145b6f57f/ref/SMCHASHcd3ed489-f940-4000-a07e-f22feb2ec0a5
+        data:
+          owner:
+            accountId: 490c36d6-6ee7-48ec-9fa7-990d1119484f
+            tenantId: 00000000-0000-0000-0000-000000000000
+          appId: 6275c4c0-9575-455a-a42e-109145b6f57f
+          externalReference: SMCHASHcd3ed489-f940-4000-a07e-f22feb2ec0a5
+          messageId: 225b9fc9-d5bb-4bfd-8b5a-a300ccfaeafb
+          deviceToken: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a6666a
+          state: success
+          provider: apple
+          providerOutcome: 'MOBILE_PUSH_DELIVERY_SIMULATOR_SUCCESS  '
+          deliveryTime: '2022-03-15T12:54:58.5739836Z'
+          requestTime: '2022-03-15T12:54:57.3818600Z'
+          retryCount: 0
+          connectionType: SIMULATOR
+          tags:
+            - push-v2-simple-10k
+            - scenario_trigger_time:2022-03-15T12:54:55Z
+    sample-sdc-deliveries-mobile-push-failed:
+      value:
+        id: b9c7b5e8-ffc9-48e7-8699-fbca72da0ad0
+        source: /sdc/pushsender
+        type: com.sdc.deliveries.mobile.push.failed
+        time: '2022-03-03T15:38:18.1381581Z'
+        specversion: '1.0'
+        dataschema: '#/v1'
+        datacontenttype: application/json
+        subject: tenant/E3320D6E-725C-453B-8BA6-AC4E8087F517/app/1d0bf78f-187a-4b8d-8ed4-5cf30758ae35/ref/external1235
+        data:
+          appId: 1d0bf78f-187a-4b8d-8ed4-5cf30758ae35
+          owner:
+            accountId: 490c36d6-6ee7-48ec-9fa7-990d1119484f
+            tenantId: 00000000-0000-0000-0000-000000000000
+          externalReference: external1235
+          deviceToken: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a3924a
+          state: Failure
+          provider: apple
+          providerOutcome: 'MOBILE_PUSH_DELIVERY_SIMULATOR_FAILURE '
+          deliveryTime: '2022-03-03T15:38:18.1381581Z'
+          requestTime: '2022-03-03T15:38:17.8817541Z'
+          retryCount: 0
+          connectionType: SIMULATOR
+          tags:
+            - Tag1
+            - Tag2
+    sample-sdc-deliveries-mobile-push-deferred:
+      value:
+        id: a91df1c2-5ce8-4956-b6b8-dc6a64c0fe31
+        source: /sdc/pushsender
+        type: com.sdc.deliveries.mobile.push.deferred
+        time: '2022-03-03T15:39:01.0160407Z'
+        specversion: '1.0'
+        dataschema: '#/v1'
+        datacontenttype: application/json
+        subject: tenant/E3320D6E-725C-453B-8BA6-AC4E8087F517/app/1d0bf78f-187a-4b8d-8ed4-5cf30758ae35/ref/external1235
+        data:
+          appId: 1d0bf78f-187a-4b8d-8ed4-5cf30758ae35
+          owner:
+            accountId: 490c36d6-6ee7-48ec-9fa7-990d1119484f
+            tenantId: 00000000-0000-0000-0000-000000000000
+          externalReference: external1235
+          deviceToken: ed2576bfb93a2e7abc26fc3fc8b43399bb092a79e1db57e39a8bdaeeb6a3924a
+          state: Retry
+          provider: apple
+          providerOutcome: 'MOBILE_PUSH_DELIVERY_SIMULATOR_RETRY '
+          deliveryTime: '2022-03-03T15:39:01.0160407Z'
+          requestTime: '2022-03-03T15:39:00.7660540Z'
+          retryCount: 0
+          connectionType: SIMULATOR
+          tags:
+            - Tag1
+            - Tag2
+tags:
+  - name: Message sending
+    x-displayName: Message sending
+    description: |-
+      <span class="tag eap">Early Access</span>
+
+      When you want to send a series of messages to a range of contacts, it is advised to group the messages and send them to SDC in bulk.
+      SDC will process all messages in the payload one by one (bulk processing).
+
+      ```
+      /email/v1/messages/send - Send a range of e-mail messages
+      /mobile/v1/messages/push/send - Send a range of mobile push messages
+      ```
+
+      All the API operations are described in detail per type.
+  - name: Message archive
+    x-displayName: Message archive
+    description: |-
+      <span class="tag eap">Early Access</span>
+
+      Selligent Delivery cloud stores the exact message of what was send and make it accessible via the Message Archive API to review and get the content per message/per contact.
+
+      The Message Archive API provides a search facility to find the message, or messages, tied to an profile of the recipient.
+
+      ```http
+      /archive - Lists all messages for a profile
+      /archive/{messageId} - Gets all the data for a single message
+      /archive/{messageId}/download - Downloads a message
+      /archive/{messageId}/download/{fileName} - Downloads an attachment of the message
+      /archive/{messageId}/preview - Preview a message in html or as PDF file
+      ```
+
+      All the API operations are described in detail per type.
+  - name: Webhook Events
+    x-displayName: Webhook Events
+    description: |-
+      SDC webhook events follow <a href="https://cloudevents.io/">CloudEvents</a> specification for describing event data in common formats to
+      provide interoperability across services, platforms and systems.
+  - name: OAuth
+    x-displayName: OAuth 2.0
+    description: All endpoints to authenticate yourself, to access the SDC API.
+x-tagGroups:
+  - name: Send messages
+    tags:
+      - Message sending
+      - Broadcast sending
+  - name: Reporting
+    tags:
+      - Statistics
+      - Message archive
+      - Message tracking
+      - Bounces
+  - name: Webhook Events
+    tags:
+      - Webhook Events
+  - name: SDC Authentication
+    tags:
+      - OAuth
+externalDocs:
+  url: https://developers.slgnt.eu
