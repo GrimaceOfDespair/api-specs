@@ -1,11 +1,11 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: petstore
-  description: The Petstore API
+  name: sdc-api
+  description: The SDC API
 spec:
   type: openapi
   lifecycle: production
-  owner: petstore@example.com
+  owner: benjamin.decock@meetmarigold.com
   definition:
-    $text: https://petstore.swagger.io/v2/swagger.json
+    $text: https://developers.slgnt.eu/api/sdc/openapi/sdc-api-rest-v1.swagger.json
